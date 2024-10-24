@@ -20,7 +20,7 @@ Project Night Vision is a web application that allows users to record their drea
 2. Install dependencies
 3. Copy the .env.example file to .env
 4. Run the laradock containers
-   1. if any other port are in use, it might be easier to close the conflicting services
+   1. you can change the ports in the laradock/.env
 5. Access the web server at http://localhost
 6. Access phpmyadmin at http://localhost:8081
 
