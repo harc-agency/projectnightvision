@@ -1,5 +1,7 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
+<!-- link to notes in _notes/readme.md -->
+[Notes](_notes/readme.md)
 
 ## Project Night Vision
 ### Dream analysis and interpretation
@@ -23,6 +25,12 @@ Project Night Vision is a web application that allows users to record their drea
    1. you can change the ports in the laradock/.env
 5. Access the web server at http://localhost
 6. Access phpmyadmin at http://localhost:8081
+7. Run the migrations and seed the database
+   1. once the containers are running, you can run the following commands (from the project root)
+   2. `docker exec -it laradock_workspace_1 bash`
+   3. `php artisan migrate`
+      1. if you want to seed the database, you can run `php artisan db:seed`
+      2. if you want to seed the database with test data, you can run `php artisan db:seed`
 
 
 ```bash
