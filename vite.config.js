@@ -17,4 +17,11 @@ export default defineConfig({
             },
         }),
     ],
+    server: {
+        host: '0.0.0.0', // Exposes Vite to all network interfaces
+        port: 5173,      // Ensures the port is 5173 as configured in Docker
+        hmr: {
+            host: 'localhost', // Use 'localhost' for Hot Module Replacement
+        },
+    },
 });

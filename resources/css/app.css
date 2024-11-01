@@ -1,3 +1,61 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* resources/css/app.css */
+
+.welcome-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1; /* Places the video behind the content */
+  }
+  
+  .content {
+    position: absolute;
+    top: 50%;
+    right: 5%; /* Adjust for desired right alignment */
+    transform: translateY(-50%);
+    text-align: right;
+    color: #fff;
+    max-width: 400px; /* Adjust width as needed */
+  }
+  
+  .title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  .description {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+  
+  .links {
+    margin-top: 2rem;
+  }
+  
+  .link {
+    display: block;
+    font-size: 1.2rem;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+  }
+  
+  .link:hover {
+    text-decoration: underline;
+  }
+  
