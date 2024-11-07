@@ -1,27 +1,27 @@
 <template>
   <AuthenticatedLayout>
 
-    <div class="border-b border-gray-200   px-4 py-5 sm:px-6">
+    <div class="border-b border-gray-200   px-4 py-5 sm:px-6"    >
         <div class="-ml-4 -mt-4 flex flex-wrap items-center justify-between sm:flex-nowrap">
             <div class="ml-4 mt-4">
                 <h3 class="text-base font-semibold text-gray-300">Dream Entries</h3>
                 <p class="mt-1 text-sm text-gray-500">Explore and manage your dream entries here.</p>
             </div>
 
-            <div class="ml-4 mt-4 shrink-0">
-                <button type="button" class="relative inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <div class="ml-4 my-4 sm:my-10 shrink-0 ">
+                <button
+                type="button" class="relative inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     Add New Dream
                 </button>
             </div>
         </div>
+
         <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             <li v-for="dream in dreams" :key="dream.id" class="col-span-1 flex flex-col divide-y divide-gray-700 rounded-lg bg-gray-800 text-center shadow">
-                <div class="flex flex-1 flex-col p-8">
-
-
-
+                <div class="flex flex-1 flex-col p-8"
+                :v-tippy="dream.title"
+                >
                     <img v-if="dream.image" class="mx-auto h-32 w-32 shrink-0 rounded-full" :src="dream.image" alt="">
-
                     <div v-else
                     v-tippy="'Add Image!'"
                         class="mx-auto mt-4 h-32 w-32 shrink-0 rounded-full bg-gray-700 text-gray-300 flex items-center justify-center">
