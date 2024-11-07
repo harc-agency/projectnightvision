@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\DreamController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -19,9 +21,9 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::resource('dreams', DreamController::class)->only(['index', 'create', 'store']);
+
+    Route::resource('profile', ProfileController::class)->only(['edit', 'update', 'destroy']);
 });
 
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);

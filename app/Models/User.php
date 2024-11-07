@@ -46,4 +46,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function dreams()
+    {
+        return $this->hasMany(Dream::class);
+    }
 }
