@@ -37,6 +37,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Dashboard
                                 </NavLink>
+
+                                <NavLink
+                                    :href="route('dreams.index')"
+                                    :active="route().current('dreams.index')"
+                                > Dreams
+                             </NavLink>
                             </div>
                         </div>
 
@@ -70,7 +76,9 @@ const showingNavigationDropdown = ref(false);
 
                                     <template #content>
                                         <DropdownLink
-                                            :href="route('profile.edit')"
+                                            :href="route('profile.edit', {
+                                                profile: $page.props.auth.user.id,
+                                            })"
                                         >
                                             Profile
                                         </DropdownLink>
@@ -162,7 +170,9 @@ const showingNavigationDropdown = ref(false);
                         </div>
 
                         <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
+                            <ResponsiveNavLink :href="route('profile.edit', {
+                                profile: $page.props.auth.user.id,
+                            })">
                                 Profile
                             </ResponsiveNavLink>
                             <ResponsiveNavLink

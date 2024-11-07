@@ -5,6 +5,9 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import { plugin as VueTippy } from 'vue-tippy'
+import 'tippy.js/dist/tippy.css' // optional for styling
+
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -19,6 +22,14 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(VueTippy, {
+                directive: 'tippy',
+                component: 'tippy',
+                defaultProps: {
+                    placement: 'top',
+                    theme: 'dark',
+                },
+            })
             .mount(el);
     },
     progress: {

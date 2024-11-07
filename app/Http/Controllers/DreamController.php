@@ -14,13 +14,10 @@ class DreamController extends Controller
      */
     public function index()
     {
-        dd(
-            auth()->user()->dreams()->latest('dream_date')->get()->toArray()
-        );
 
         $dreams = auth()->user()->dreams()->latest('dream_date')->get()->toArray();
 
-        return Inertia::render('Dreams/Index', ['dreams' => $dreams]);
+        return Inertia::render('Dreams/index', ['dreams' => $dreams]);
     }
 
     /**
