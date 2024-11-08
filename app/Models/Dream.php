@@ -9,11 +9,24 @@ class Dream extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'is_public', 'dream_date'];
+    protected $fillable = [
+        'title', 
+        'content', 
+        'is_public', 
+        'dream_date', 
+        'dream_location', 
+        'mood_before_sleep', 
+        'mood_after_waking', 
+        'intensity', 
+        'sleep_quality',
+        'possible_meaning',
+        'sentiment',
+        'sleep_duration'
+    ];
 
     protected $casts = [
         'is_public' => 'boolean',
-        'dream_date' => 'datetime',
+        'dream_date' => 'date',
     ];
 
     public function user()

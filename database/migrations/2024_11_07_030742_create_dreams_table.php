@@ -17,7 +17,16 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->boolean('is_public')->default(true); // paid users can make their dreams private
-            $table->dateTime('dream_date');
+            $table->date('dream_date');
+            $table->string('dream_location')->nullable();
+            $table->string('mood_before_sleep')->nullable();
+            $table->string('mood_after_waking')->nullable();
+            $table->integer('intensity')->unsigned()->nullable();
+            $table->integer('sleep_quality')->unsigned()->nullable();
+            $table->string('overall_theme')->nullable();
+            $table->text('possible_meaning')->nullable();
+            $table->string('sentiment')->nullable();
+            $table->float('sleep_duration')->nullable();
             $table->timestamps();
         });
     }
