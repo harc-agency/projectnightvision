@@ -1,8 +1,5 @@
 (Back to [API Reference](../README.md))
 
-### Overview
-The following schemas define the structure of the Dream Analysis application. They outline how dreams and their various components are stored and managed. Using these schemas, users can record detailed information about their dreams, including themes, symbols, settings, characters, emotions, actions, and other elements. This allows for comprehensive tracking and analysis of dream patterns, facilitating insights into subconscious thoughts and experiences.
-
 ### Users
 - **id** (autoincrement)
 - **username** (string): Unique username
