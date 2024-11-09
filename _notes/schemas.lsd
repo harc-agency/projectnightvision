@@ -1,0 +1,46 @@
+@ User
+- id: integer, primary_key
+- username: string, unique
+- email: string, unique
+- password: string, required
+- created_at: timestamp
+- location: string -> User's location from geolocation (fingerprint)
+
+> dreams: hasMany(Dream)
+
+---
+
+@ Dream
+- id: integer, primary_key
+- user_id: foreignId -> relates to User
+- content: text, required
+- is_public: boolean, default(true)
+- dream_date: date, required -> auto-filled
+- dream_location: string -> User's location from geolocation (fingerprint)
+- mood_before_sleep: string
+- mood_after_waking: string
+- intensity: integer -> scale of 1-10
+- sleep_quality: integer -> rating of 1-10
+- title: string
+- overall_theme: string -> main theme of the dream
+- possible_meaning: text -> interpretation of dream's meaning
+- sentiment: enum('positive', 'negative', 'neutral')
+- sleep_duration: float -> duration of sleep in hours, derived from dream date + fitbit
+
+= weather: string -> Weather based on geolocation (date + location)
+
+> user: belongsTo(User)
+> symbols: hasMany(Symbol)
+
+---
+
+@ Symbol
+- id: integer, primary_key
+- dream_id: foreignId -> relates to Dream
+- symbol: string -> notable symbol in the dream
+- interpretation: text -> meaning of the symbol
+- created_at: timestamp
+- updated_at: timestamp
+- symbol_context: text -> context in which the symbol appeared
+
+> dream: belongsTo(Dream)
