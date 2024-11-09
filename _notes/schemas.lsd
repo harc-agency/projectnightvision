@@ -35,7 +35,14 @@
 > symbols: hasMany(Symbol)
 
 
-@Notification: NewDreamAnalyzed -> Notification for user when a new dream is analyzed
+
+@Event: NewDream -> Notification for user when a new dream is created
+@Event: ConvertAudio -> Notification for user when audio is converted to text
+@Event: AnalyzeDream -> Notification for user when a dream is analyzed
+@Event: SymbolizeDream -> Notification for user when a dream is symbolized
+
+@Event: NewChat -> Notification for user when a new chat is created
+
 
 
 ---
