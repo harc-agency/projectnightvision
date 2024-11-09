@@ -4,7 +4,9 @@
 - email: string, unique
 - password: string, required
 - created_at: timestamp
-- location: string -> User's location from geolocation (fingerprint)
+- age: integer
+- gender: string
+- fingerprint: string -> unique identifier for user's device
 
 > dreams: hasMany(Dream)
 
@@ -13,7 +15,7 @@
 @ Dream
 - id: integer, primary_key
 - user_id: foreignId -> relates to User
-- content: text, required
+- dream_content: text, required
 - is_public: boolean, default(true)
 - dream_date: date, required -> auto-filled
 - dream_location: string -> User's location from geolocation (fingerprint)
@@ -23,24 +25,52 @@
 - sleep_quality: integer -> rating of 1-10
 - title: string
 - overall_theme: string -> main theme of the dream
-- possible_meaning: text -> interpretation of dream's meaning
+- analysis: text -> interpretation of dream's meaning
 - sentiment: enum('positive', 'negative', 'neutral')
 - sleep_duration: float -> duration of sleep in hours, derived from dream date + fitbit
-
+- location: json -> User's location from geolocation
 = weather: string -> Weather based on geolocation (date + location)
 
 > user: belongsTo(User)
 > symbols: hasMany(Symbol)
 
+
+@Notification: NewDreamAnalyzed -> Notification for user when a new dream is analyzed
+
+
+---
+
+@ Chats
+- id: integer, primary_key
+- dream_id: foreignId -> relates to Dream 
+- message: text
+- created_at: timestamp
+- updated_at: timestamp
+- source: string -> source of the message (user, bot)
+
 ---
 
 @ Symbol
 - id: integer, primary_key
-- dream_id: foreignId -> relates to Dream
+- title: string
+- description: text
 - symbol: string -> notable symbol in the dream
 - interpretation: text -> meaning of the symbol
+- featured_image: string -> image of the symbol
 - created_at: timestamp
 - updated_at: timestamp
-- symbol_context: text -> context in which the symbol appeared
+- symbol_key: string -> key to identify symbol (unique)
 
-> dream: belongsTo(Dream)
+
+---
+
+@ dream_symbol
+
+- dream_id: foreignId -> relates to Dream
+- symbol_id: foreignId -> relates to Symbol
+- created_at: timestamp
+- updated_at: timestamp
+
+
+---
+
