@@ -34,7 +34,7 @@
 - analysis: text -> interpretation of dream's meaning
 - sentiment: enum('positive', 'negative', 'neutral') -> sentiment of the dream
 - sleep_duration: float -> (optional) duration of sleep in hours, derived from dream date + fitbit,  user can input manually
-- timestamp: timestamp
+- timestamps
 - location: json -> User's location from geolocation
 - weather: json -> (date + location) includes temperature, condition, humidity
 
@@ -61,7 +61,7 @@
 - user_id: foreignId -> (if other user is involved)
 - message: text
 - source: string -> source of the message (user, bot)
-- timestamp: timestamp
+- timestamps
 
 ---
 
@@ -73,7 +73,7 @@
 - symbol: string -> notable symbol in the dream
 - interpretation: text -> meaning of the symbol
 - featured_image: string -> image of the symbol
-- timestamps: timestamp
+- timestamps
 
 
 ---
@@ -82,10 +82,7 @@
 
 - dream_id: foreignId -> relates to Dream
 - symbol_id: foreignId -> relates to Symbol
-- timestamp: timestamp
-
-
-
+- timestamps
 
 ---
 
