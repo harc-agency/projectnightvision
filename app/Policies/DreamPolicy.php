@@ -39,7 +39,7 @@ class DreamPolicy
     public function update(User $user, Dream $dream): bool
     {
         // only the owner of the dream can update it
-        return $user->id === $dream->user_id;
+        return $user->id === $dream->user_id || $user->isAdmin;
 
     }
 
@@ -49,7 +49,7 @@ class DreamPolicy
     public function delete(User $user, Dream $dream): bool
     {
         // only the owner of the dream can delete it
-        return $user->id === $dream->user_id;
+        return $user->id === $dream->user_id || $user->isAdmin;
 
     }
 
@@ -59,7 +59,7 @@ class DreamPolicy
     public function restore(User $user, Dream $dream): bool
     {
         // only the owner of the dream can restore it
-        return $user->id === $dream->user_id;
+        return $user->id === $dream->user_id || $user->isAdmin;
     }
 
     /**
@@ -68,6 +68,6 @@ class DreamPolicy
     public function forceDelete(User $user, Dream $dream): bool
     {
         // only admins or the user can permanently delete a dream
-        return $user->id === $dream->user_id || $user->is_admin;
+        return $user->id === $dream->user_id || $user->isAdmin;
     }
 }

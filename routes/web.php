@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\DreamController;
+use App\Http\Controllers\SymbolController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -22,7 +23,9 @@ Route::get('/dashboard', function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('dreams', DreamController::class)->only(['index', 'create', 'store']);
-
+    Route::resource('symbols', SymbolController::class)->only(['index']);
+    // show single symbol
+    Route::get('symbols/{symbol}', [SymbolController::class, 'show'])->name('symbols.show');
     Route::resource('profile', ProfileController::class)->only(['edit', 'update', 'destroy']);
 });
 

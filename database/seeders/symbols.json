@@ -5,8 +5,6 @@
         "description": "A common dream symbol often representing transformation or hidden fears.",
         "symbol": "snake",
         "interpretation": "Transformation, hidden fears, or danger.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "snake"
     },
     {
@@ -15,8 +13,6 @@
         "description": "A symbol of independence and intuition, often connected with feminine energy.",
         "symbol": "cat",
         "interpretation": "Independence, intuition, or feminine energy.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "cat"
     },
     {
@@ -25,8 +21,6 @@
         "description": "Represents loyalty, friendship, or protection.",
         "symbol": "dog",
         "interpretation": "Loyalty, protection, or friendship.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "dog"
     },
     {
@@ -35,8 +29,6 @@
         "description": "Often tied to emotions, cleansing, or the unconscious mind.",
         "symbol": "water",
         "interpretation": "Emotions, cleansing, or the unconscious mind.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "water"
     },
     {
@@ -45,8 +37,6 @@
         "description": "Symbolizes passion, anger, or transformation.",
         "symbol": "fire",
         "interpretation": "Passion, anger, or transformation.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "fire"
     },
     {
@@ -55,8 +45,6 @@
         "description": "Represents freedom, ambition, or control in dreams.",
         "symbol": "flying",
         "interpretation": "Freedom, ambition, or control.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "flying"
     },
     {
@@ -65,8 +53,6 @@
         "description": "A common dream that signifies insecurity or loss of control.",
         "symbol": "falling",
         "interpretation": "Insecurity, loss of control, or fear.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "falling"
     },
     {
@@ -75,8 +61,6 @@
         "description": "Represents access, solutions, or new opportunities.",
         "symbol": "key",
         "interpretation": "Access, solutions, or new opportunities.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "key"
     },
     {
@@ -85,8 +69,6 @@
         "description": "Symbolizes self-reflection and self-awareness.",
         "symbol": "mirror",
         "interpretation": "Self-reflection or self-awareness.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "mirror"
     },
     {
@@ -95,8 +77,6 @@
         "description": "Often signifies transformation or fear of endings.",
         "symbol": "death",
         "interpretation": "Transformation, endings, or fear of loss.",
-        "created_at": "2024-11-08T00:00:00Z",
-        "updated_at": "2024-11-08T00:00:00Z",
         "symbol_key": "death"
     }
 ]

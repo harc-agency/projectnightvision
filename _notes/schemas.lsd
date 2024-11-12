@@ -43,6 +43,7 @@
 
 
 
+
 @Event: NewDream -> Notification for user when a new dream is created
 @Event: ConvertAudio -> Notification for user when audio is converted to text
 @Event: AnalyzeDream -> Notification for user when a dream is analyzed

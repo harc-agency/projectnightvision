@@ -10,18 +10,21 @@ class Dream extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 
-        'content', 
-        'is_public', 
-        'dream_date', 
-        'dream_location', 
-        'mood_before_sleep', 
-        'mood_after_waking', 
-        'intensity', 
+        'user_id',
+        'dream_content',
+        'is_public',
+        'dream_date',
+        'mood_before_sleep',
+        'mood_after_waking',
+        'intensity',
         'sleep_quality',
-        'possible_meaning',
+        'title',
+        'overall_theme',
+        'analysis',
         'sentiment',
-        'sleep_duration'
+        'sleep_duration',
+        'location',
+        'weather'
     ];
 
     protected $casts = [

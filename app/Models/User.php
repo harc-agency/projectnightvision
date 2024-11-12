@@ -50,4 +50,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Dream::class);
     }
+
+    public function symbols()
+    {
+        return $this->hasMany(Symbol::class);
+    }
+    
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 }

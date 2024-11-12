@@ -31,5 +31,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DreamSeeder::class,
         ]);
+
+        // symbol seeder
+        $this->call([
+            SymbolSeeder::class,
+        ]);
     }
 }
