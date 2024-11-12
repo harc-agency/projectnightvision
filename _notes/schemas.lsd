@@ -4,32 +4,39 @@
 - email: string, unique
 - password: string, required
 - created_at: timestamp
-- age: integer
+- birthday: date
 - gender: string
-- fingerprint: string -> unique identifier for user's device
+- fingerprint_id: string -> fingerprint.js id for device,updated per session
+- settings: json -> user settings (https://github.com/spatie/laravel-schemaless-attributes)
+= age: integer -> derived from birthday
+
 
 > dreams: hasMany(Dream)
+> symbols: hasManyThrough(Symbol, Dream)
+> chats: hasMany(Chat)
+
 
 ---
+
 
 @ Dream
 - id: integer, primary_key
 - user_id: foreignId -> relates to User
 - dream_content: text, required
 - is_public: boolean, default(true)
-- dream_date: date, required -> auto-filled
-- dream_location: string -> User's location from geolocation (fingerprint)
-- mood_before_sleep: string
-- mood_after_waking: string
-- intensity: integer -> scale of 1-10
-- sleep_quality: integer -> rating of 1-10
-- title: string
-- overall_theme: string -> main theme of the dream
+- dream_date: datetime, (default: 3am) -> date and time of the dream
+- mood_before_sleep: string -> scale of 1-5 (1 being low, 5 being high)
+- mood_after_waking: string -> scale of 1-5 (1 being low, 5 being high)
+- intensity: integer -> scale of 1-5 (1 being low, 5 being high)
+- sleep_quality: integer -> rating of 1-5 (1 being poor, 5 being excellent)
+- title: string -> title of the dream
+- overall_theme: string -> (optional) theme of the dream
 - analysis: text -> interpretation of dream's meaning
-- sentiment: enum('positive', 'negative', 'neutral')
-- sleep_duration: float -> duration of sleep in hours, derived from dream date + fitbit
+- sentiment: enum('positive', 'negative', 'neutral') -> sentiment of the dream
+- sleep_duration: float -> (optional) duration of sleep in hours, derived from dream date + fitbit,  user can input manually
+- timestamp: timestamp
 - location: json -> User's location from geolocation
-= weather: string -> Weather based on geolocation (date + location)
+- weather: json -> (date + location) includes temperature, condition, humidity
 
 > user: belongsTo(User)
 > symbols: hasMany(Symbol)
@@ -49,24 +56,23 @@
 
 @ Chats
 - id: integer, primary_key
-- dream_id: foreignId -> relates to Dream 
+- dream_id: foreignId -> relates to Dream
+- user_id: foreignId -> (if other user is involved)
 - message: text
-- created_at: timestamp
-- updated_at: timestamp
 - source: string -> source of the message (user, bot)
+- timestamp: timestamp
 
 ---
 
 @ Symbol
 - id: integer, primary_key
+- symbol_key: string -> key to identify symbol (unique), slug for URLs
 - title: string
 - description: text
 - symbol: string -> notable symbol in the dream
 - interpretation: text -> meaning of the symbol
 - featured_image: string -> image of the symbol
-- created_at: timestamp
-- updated_at: timestamp
-- symbol_key: string -> key to identify symbol (unique)
+- timestamps: timestamp
 
 
 ---
@@ -75,8 +81,9 @@
 
 - dream_id: foreignId -> relates to Dream
 - symbol_id: foreignId -> relates to Symbol
-- created_at: timestamp
-- updated_at: timestamp
+- timestamp: timestamp
+
+
 
 
 ---
