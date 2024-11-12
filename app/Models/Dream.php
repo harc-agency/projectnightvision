@@ -24,7 +24,7 @@ class Dream extends Model
         'sentiment',
         'sleep_duration',
         'location',
-        'weather'
+        'weather',
     ];
 
     protected $casts = [
