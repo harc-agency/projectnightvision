@@ -36,4 +36,11 @@ class Dream extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // calculate age from birthdate to get age
+    public function getAgeAttribute()
+    {
+        return $this->user->birthdate->diffInYears(now());
+
+    }
 }
