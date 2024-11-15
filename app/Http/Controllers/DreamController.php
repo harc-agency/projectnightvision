@@ -24,20 +24,19 @@ class DreamController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Dreams/Create');
+        return Inertia::render('Dreams/create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreDreamRequest $request)
+    public function store(StoreDreamRequest $request) // StoreDreamRequest $request
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-        ]);
+        //save dream
+        $dream = auth()->user()->dreams()->create($request->validated());
 
-        auth()->user()->dreams()->create($request->only('title', 'description'));
+        //fire off an event to process the dream
+        // event(new DreamWasCreated($dream));
 
         return redirect()->route('dreams.index');
     }

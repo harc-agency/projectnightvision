@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('dreams', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->text('dream_content');
+            $table->string('title')->nullable();
+            $table->text('dream_content')->nullable();
             $table->boolean('is_public')->default(true);
             $table->dateTime('dream_date')->nullable();
             $table->string('dream_location')->nullable();
