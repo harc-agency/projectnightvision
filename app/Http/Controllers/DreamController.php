@@ -38,7 +38,7 @@ class DreamController extends Controller
         //fire off an event to process the dream
         // event(new DreamWasCreated($dream));
 
-        return redirect()->route('dreams.index');
+        return redirect()->route('dreams.index')->with('success', 'Dream created successfully');
     }
 
     /**
