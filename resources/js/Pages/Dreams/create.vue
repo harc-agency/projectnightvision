@@ -12,23 +12,22 @@
         <Form @submit.prevent="form.post(route('dreams.store'))">
 
           <FormField name="title">
-            <FormItem v-auto-animate>
+            <FormItem >
               <FormLabel>Title</FormLabel>
-                <Input type="text" v-bind="form.title" />
-              <FormDescription>
-                Enter the title of your dream.
-              </FormDescription>
+                <Input type="text" v-model="form.title" />
+                <FormDescription>
+                    Enter the title of your dream.
+                </FormDescription>
             </FormItem>
           </FormField>
 
           <FormField name="dream_content">
-            <FormItem v-auto-animate>
+            <FormItem >
                 <FormLabel>Dream Content</FormLabel>
-                  <Textarea v-model="form.dream_content"></Textarea>
+                  <Textarea v-model="form.dream_content" />
                   <FormDescription>
                       Enter the content of your dream.
                   </FormDescription>
-
             </FormItem>
           </FormField>
 
@@ -97,7 +96,7 @@ export default {
     data() {
         return {
             form: this.$inertia.form({
-                user_id: this.$page.props.auth.user.id,
+                user_id: this.$page.props.auth.user.id || '',
                 title: '',
                 dream_content: '',
             }),

@@ -24,7 +24,7 @@ class StoreDreamRequest extends FormRequest
     {
         return [
             'user_id' => ['required', 'exists:App\Models\User,id'],
-             'title' => ['nullable', 'string'],
+            'title' => ['nullable', 'string'],
             'dream_content' => ['nullable', 'string'],
 
             // 'dream_audio' => ['nullable', 'file', 'mimes:mp3', 'max:10240'],

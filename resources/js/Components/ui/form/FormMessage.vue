@@ -7,10 +7,10 @@ const { name, formMessageId } = useFormField();
 </script>
 
 <template>
-<p
-v-if="name && formMessageId"
-:id="formMessageId"
-class="text-sm font-medium text-destructive" >
-    {{ toValue(name) }}
-</p>
+  <ErrorMessage
+    :id="formMessageId"
+    as="p"
+    :name="toValue(name)"
+    class="text-sm font-medium text-destructive"
+  />
 </template>
