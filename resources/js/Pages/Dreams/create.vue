@@ -1,33 +1,47 @@
 <template>
   <AuthenticatedLayout>
-    <h1 class="text-2xl font-semibold text-white">Create a Dream</h1>
 
     <Card>
     <CardHeader>
-      <CardTitle>Card Title</CardTitle>
-      <CardDescription>Card Description</CardDescription>
+      <CardTitle>Create a Dream</CardTitle>
+      <CardDescription>
+        Fill out the form below to create a new dream entry.
+      </CardDescription>
     </CardHeader>
     <CardContent>
-      Card Content
-    </CardContent>
-    <CardFooter>
-      Card Footer
-    </CardFooter>
-  </Card>
-
-
-      <form
+       <form
       @submit.prevent="form.post(route('dreams.store'))">
 
-        <div>
-            <label for="title">Title</label>
-              <input type="text" v-model="form.title">
-        </div>
 
-        <div>
-            <label for="dream_content">Dream Content</label>
-              <textarea v-model="form.dream_content"></textarea>
-        </div>
+      <FormField name="title">
+      <FormItem v-auto-animate>
+        <FormLabel>Title</FormLabel>
+        <FormControl>
+          <Input type="text" v-bind="form.title" />
+        </FormControl>
+        <FormDescription>
+          Enter the title of your dream.
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    </FormField>
+
+
+
+    <FormField  v-slot="{ componentField }"  name="dream_content">
+        <FormItem v-auto-animate>
+            <FormLabel>Dream Content</FormLabel>
+            <FormControl>
+                <Textarea v-model="form.dream_content"></Textarea>
+            </FormControl>
+            <FormDescription>
+                Enter the content of your dream.
+            </FormDescription>
+            <FormMessage />
+        </FormItem>
+    </FormField>
+
+
         <div>
             <button
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -35,6 +49,12 @@
         </div>
 
   </form>
+    </CardContent>
+
+  </Card>
+
+
+
 
   </AuthenticatedLayout>
 </template>
@@ -50,15 +70,37 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/Textarea'
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+
 export default {
     components: {
         AuthenticatedLayout,
+
         Card,
         CardContent,
         CardDescription,
-        CardFooter,
+
         CardHeader,
         CardTitle,
+
+        FormControl,
+        FormDescription,
+        FormField,
+        FormItem,
+        FormLabel,
+        FormMessage,
+
+        Input,
+        Textarea,
     },
     props: {
     },
