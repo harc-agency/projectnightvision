@@ -32,9 +32,7 @@ class DreamController extends Controller
      */
     public function store(StoreDreamRequest $request) // StoreDreamRequest $request
     {
-        dd(
-            $request->validated()
-        );
+
         //save dream
         $dream = auth()->user()->dreams()->create($request->validated());
 

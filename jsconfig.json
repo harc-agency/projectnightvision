@@ -1,21 +1,21 @@
 {
-    "compilerOptions": {
-        "forceConsistentCasingInFileNames": true,
-        "baseUrl": ".",
-        "paths": {
-            "@/*": [
-                "resources/js/*"
-            ],
-            "ziggy-js": [
-                "./vendor/tightenco/ziggy"
-            ]
-        }
-    },
-    "include": [
-        "resources/js/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "public"
-    ]
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "resources/js/*"
+      ],
+      "ziggy-js": [
+        "./vendor/tightenco/ziggy"
+      ]
+    }
+  },
+  // "include": [
+  //   "resources/js/components/**/*",
+  // ],
+  "exclude": [
+    "node_modules",
+    "public"
+  ]
 }

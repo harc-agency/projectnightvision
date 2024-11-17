@@ -1,21 +1,24 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://fonts.googleapis.com/css2?family=Mate+SC&amp;display=swap" rel="stylesheet">
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+<html class="dark" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Mate+SC&amp;display=swap" rel="stylesheet">
+  <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Scripts -->
-        @routes
-        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
-        @inertiaHead
-    </head>
-    <body class="font-sans antialiased">
-        @inertia
-    </body>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+  <!-- Scripts -->
+  @routes
+  @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+  @inertiaHead
+</head>
+
+<body class="font-sans antialiased">
+  @inertia
+</body>
+
 </html>
