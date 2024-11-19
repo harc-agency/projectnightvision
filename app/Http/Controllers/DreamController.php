@@ -15,7 +15,11 @@ class DreamController extends Controller
      */
     public function index()
     {
-        $dreams = auth()->user()->dreams()->latest('dream_date')->get()->toArray();
+        $dreams = auth()->user()
+            ->dreams()
+            ->latest('created_at') // change to dream_date once that is figured out
+            ->get()
+            ->toArray();
 
         return Inertia::render('Dreams/index', ['dreams' => $dreams]);
     }
@@ -35,14 +39,20 @@ class DreamController extends Controller
     {
 
         //save dream
-        $dream = auth()->user()->dreams()->create($request->validated());
+        $data = $request->validated();
+        //format datetime for mysql
+        $data['dream_date'] = now()->format('Y-m-d H:i:s');
+
+        $dream = auth()->user()->dreams()
+
+            ->create($data);
 
         //fire event
         // event(new DreamCreated($dream));
 
         $dreamRequest = Http::post(env('N8N_URL').'/webhook/dream', ['content' => $dream->dream_content]);
         // $symbolRequest = Http::post(env('N8N_URL').'/webhook/symbol', ['content' => $dream->dream_content]);
-        $dream->update($request->json());
+        $dream->update($dreamRequest->json());
 
         //return a redirect to the show page of the dream
         return redirect()->route('dreams.show', $dream);
@@ -53,7 +63,7 @@ class DreamController extends Controller
      */
     public function show(Dream $dream)
     {
-        // Add your logic here if needed
+        return Inertia::render('Dreams/show', ['dream' => $dream]);
     }
 
     /**
