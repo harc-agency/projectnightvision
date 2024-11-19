@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreDreamRequest;
 use App\Http\Requests\UpdateDreamRequest;
 use App\Models\Dream;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 
 class DreamController extends Controller
@@ -36,10 +37,15 @@ class DreamController extends Controller
         //save dream
         $dream = auth()->user()->dreams()->create($request->validated());
 
-        //fire off an event to process the dream
-        // event(new DreamWasCreated($dream));
+        //fire event
+        // event(new DreamCreated($dream));
 
-        return redirect()->route('dreams.index')->with('success', 'Dream created successfully');
+        $dreamRequest = Http::post(env('N8N_URL').'/webhook/dream', ['content' => $dream->dream_content]);
+        // $symbolRequest = Http::post(env('N8N_URL').'/webhook/symbol', ['content' => $dream->dream_content]);
+        $dream->update($request->json());
+
+        //return a redirect to the show page of the dream
+        return redirect()->route('dreams.show', $dream);
     }
 
     /**
