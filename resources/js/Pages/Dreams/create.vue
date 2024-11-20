@@ -14,13 +14,13 @@
 
             <form @submit.prevent="form.post(route('dreams.store'))">
               <div class="flex justify-between space-x-4 mb-6">
-                <FormField name="title">
+                <!-- <FormField name="title">
                   <FormItem>
                     <Input type="text" placeholder="Title" v-model="form.title" />
                   </FormItem>
-                </FormField>
+                </FormField> -->
 
-                <FormField name="dream_date">
+                <!-- <FormField name="dream_date">
                   <FormItem>
                     <Popover>
                       <PopoverTrigger as-child>
@@ -39,7 +39,7 @@
                     </Popover>
 
                   </FormItem>
-                </FormField>
+                </FormField> -->
               </div>
               <FormField name="dream_content">
                 <FormItem>

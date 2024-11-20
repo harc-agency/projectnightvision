@@ -30,6 +30,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+        serif: ['"Mate SC"', 'serif'], // Add "Mate SC" as the default serif font
       },
       colors: {
         border: "hsl(var(--border))",

@@ -50,7 +50,10 @@ class DreamController extends Controller
         //fire event
         // event(new DreamCreated($dream));
 
-        $dreamRequest = Http::post(env('N8N_URL').'/webhook/dream', ['content' => $dream->dream_content]);
+        $webhookUrl = rtrim(env('N8N_URL'), '/') . '/webhook/dream/';
+
+        $dreamRequest = Http::post($webhookUrl, ['content' => $dream->dream_content]);
+        
         // $symbolRequest = Http::post(env('N8N_URL').'/webhook/symbol', ['content' => $dream->dream_content]);
         $dream->update($dreamRequest->json());
 
