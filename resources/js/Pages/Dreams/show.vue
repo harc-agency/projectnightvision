@@ -7,7 +7,7 @@
         <div class="flex justify-between items-center mb-6">
           <div>
             <h2 class="text-2xl font-bold">{{ dream.title }}</h2>
-            <div class="text-gray-400">{{ dream.dream_date }}</div>
+            <div class="text-gray-400">{{ new Date(dream.dream_date).toLocaleDateString() }}</div>
           </div>
           <button
             @click="toggleDrawer"
@@ -46,6 +46,19 @@
           <div class="px-4 py-5 sm:p-6">
             {{ dream.analysis }}
           </div>
+        </div>
+      </div>
+      <br>
+      <!-- Dream Symbols -->
+      <h2 class="text-2xl font-bold mb-4">Symbols</h2>
+      <div class="overflow-hidden rounded-lg bg-gray-800 shadow mb-6">
+        <div class="px-4 py-5 sm:p-6">
+          <ul>
+            <li v-for="symbol in dream.symbols" :key="symbol.id" class="mb-2">
+              <span class="font-semibold text-white">{{ symbol.title }}:</span>
+              <span class="text-gray-400">{{ symbol.description }}</span>
+            </li>
+          </ul>
         </div>
       </div>
 

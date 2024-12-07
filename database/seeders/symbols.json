@@ -3,80 +3,60 @@
         "id": 1,
         "title": "Snake",
         "description": "A common dream symbol often representing transformation or hidden fears.",
-        "symbol": "snake",
-        "interpretation": "Transformation, hidden fears, or danger.",
         "symbol_key": "snake"
     },
     {
         "id": 2,
         "title": "Cat",
         "description": "A symbol of independence and intuition, often connected with feminine energy.",
-        "symbol": "cat",
-        "interpretation": "Independence, intuition, or feminine energy.",
         "symbol_key": "cat"
     },
     {
         "id": 3,
         "title": "Dog",
         "description": "Represents loyalty, friendship, or protection.",
-        "symbol": "dog",
-        "interpretation": "Loyalty, protection, or friendship.",
         "symbol_key": "dog"
     },
     {
         "id": 4,
         "title": "Water",
         "description": "Often tied to emotions, cleansing, or the unconscious mind.",
-        "symbol": "water",
-        "interpretation": "Emotions, cleansing, or the unconscious mind.",
         "symbol_key": "water"
     },
     {
         "id": 5,
         "title": "Fire",
         "description": "Symbolizes passion, anger, or transformation.",
-        "symbol": "fire",
-        "interpretation": "Passion, anger, or transformation.",
         "symbol_key": "fire"
     },
     {
         "id": 6,
         "title": "Flying",
         "description": "Represents freedom, ambition, or control in dreams.",
-        "symbol": "flying",
-        "interpretation": "Freedom, ambition, or control.",
         "symbol_key": "flying"
     },
     {
         "id": 7,
         "title": "Falling",
         "description": "A common dream that signifies insecurity or loss of control.",
-        "symbol": "falling",
-        "interpretation": "Insecurity, loss of control, or fear.",
         "symbol_key": "falling"
     },
     {
         "id": 8,
         "title": "Key",
         "description": "Represents access, solutions, or new opportunities.",
-        "symbol": "key",
-        "interpretation": "Access, solutions, or new opportunities.",
         "symbol_key": "key"
     },
     {
         "id": 9,
         "title": "Mirror",
         "description": "Symbolizes self-reflection and self-awareness.",
-        "symbol": "mirror",
-        "interpretation": "Self-reflection or self-awareness.",
         "symbol_key": "mirror"
     },
     {
         "id": 10,
         "title": "Death",
         "description": "Often signifies transformation or fear of endings.",
-        "symbol": "death",
-        "interpretation": "Transformation, endings, or fear of loss.",
         "symbol_key": "death"
     }
 ]

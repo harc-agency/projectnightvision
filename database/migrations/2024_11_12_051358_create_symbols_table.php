@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('symbol_key')->unique();
             $table->string('title');
             $table->text('description');
-            $table->string('symbol');
-            $table->text('interpretation');
             $table->string('featured_image')->nullable();
             $table->timestamps();
         });

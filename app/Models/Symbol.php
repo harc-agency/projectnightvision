@@ -10,13 +10,16 @@ class Symbol extends Model
         'symbol_key',
         'title',
         'description',
-        'symbol',
-        'interpretation',
         'featured_image',
     ];
 
     public function getRouteKeyName()
     {
         return 'symbol_key';
+    }
+
+    public function dreams()
+    {
+        return $this->belongsToMany(Dream::class);
     }
 }

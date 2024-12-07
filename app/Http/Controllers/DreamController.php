@@ -7,6 +7,8 @@ use App\Http\Requests\UpdateDreamRequest;
 use App\Models\Dream;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
+use App\Jobs\AnalyzeSymbolsJob;
+
 
 class DreamController extends Controller
 {
@@ -52,10 +54,20 @@ class DreamController extends Controller
 
         $webhookUrl = rtrim(env('N8N_URL'), '/') . '/webhook/dream/';
 
-        $dreamRequest = Http::post($webhookUrl, ['content' => $dream->dream_content]);
+        $payload = [
+                'content' => $dream->dream_content,
+        ];
+
+        $dreamRequest = Http::post($webhookUrl, $payload);
         
-        // $symbolRequest = Http::post(env('N8N_URL').'/webhook/symbol', ['content' => $dream->dream_content]);
         $dream->update($dreamRequest->json());
+
+        // dd($dreamRequest->json());
+
+
+          // Dispatch the job for symbol analysis
+          AnalyzeSymbolsJob::dispatchSync($dream);
+
 
         //return a redirect to the show page of the dream
         return redirect()->route('dreams.show', $dream);
@@ -66,6 +78,8 @@ class DreamController extends Controller
      */
     public function show(Dream $dream)
     {
+        $dream->load('symbols');
+
         return Inertia::render('Dreams/show', ['dream' => $dream]);
     }
 

@@ -41,4 +41,10 @@ class Dream extends Model
     {
         return $this->user->birthdate->diffInYears(now());
     }
+
+    public function symbols()
+    {
+        return $this->belongsToMany(Symbol::class);
+    }
+
 }
