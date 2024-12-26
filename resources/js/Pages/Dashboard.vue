@@ -40,7 +40,11 @@ onMounted(() => {
                 <!-- Radial Chart Section -->
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <h3 class="text-lg font-medium mb-4">Dream Insights</h3>
+                        <h3 class="text-lg font-medium mb-4">Dream Insights (Coming Soon)</h3>
+                        <hr>
+                        <a href="/dreams/create" class="px-4 py-2 font-semibold text-white bg-blue-500 rounded hover:bg-blue-700">
+                            Submit a Dream
+                        </a>
                         <!-- Use the ref for the canvas -->
                     </div>
                 </div>
