@@ -53,11 +53,11 @@
 
 
               <div class="flex justify-between mt-6">
-                <Button>
-                  Submit
-                </Button>
                 <Button variant="secondary">
                   Cancel
+                </Button>
+                <Button>
+                  Submit
                 </Button>
               </div>
 
