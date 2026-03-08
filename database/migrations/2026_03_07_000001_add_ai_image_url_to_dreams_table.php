@@ -11,8 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('dreams', 'ai_image_url')) {
+            return;
+        }
+
         Schema::table('dreams', function (Blueprint $table) {
-            $table->string('ai_image_url')->nullable()->after('analysis');
+            if (Schema::hasColumn('dreams', 'analysis')) {
+                $table->string('ai_image_url')->nullable()->after('analysis');
+                return;
+            }
+
+            $table->string('ai_image_url')->nullable();
         });
     }
 
@@ -21,6 +30,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasColumn('dreams', 'ai_image_url')) {
+            return;
+        }
+
         Schema::table('dreams', function (Blueprint $table) {
             $table->dropColumn('ai_image_url');
         });
