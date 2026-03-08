@@ -47,7 +47,10 @@ class DreamController extends Controller
         $audioFile = $request->file('dream_audio');
         unset($data['dream_audio']);
         $data['dream_date'] = now()->format('Y-m-d H:i:s');
-        $data['title'] = $data['title'] ?? null;
+        $title = Str::squish((string) ($data['title'] ?? ''));
+        $data['title'] = $title !== ''
+            ? $title
+            : Str::limit(Str::squish((string) $data['dream_content']), 80, '...');
         $data['is_public'] = $request->boolean('is_public');
 
         if ($audioFile) {
