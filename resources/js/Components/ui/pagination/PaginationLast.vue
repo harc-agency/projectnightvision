@@ -1,5 +1,5 @@
 <script setup>
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronsRight } from 'lucide-vue-next';
 import { PaginationLast } from 'radix-vue';

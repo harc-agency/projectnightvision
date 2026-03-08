@@ -1,5 +1,5 @@
 <script setup>
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/Components/ui/button';
 import { cn } from '@/lib/utils';
 import { CalendarCellTrigger, useForwardProps } from 'radix-vue';
 import { computed } from 'vue';
