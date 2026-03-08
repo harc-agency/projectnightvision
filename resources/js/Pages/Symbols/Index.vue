@@ -1,51 +1,83 @@
+<script setup>
+import { Head, Link } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+
+defineProps({
+    symbols: {
+        type: Array,
+        required: true,
+    },
+});
+</script>
+
 <template>
+    <Head title="Symbols" />
+
     <AuthenticatedLayout>
-
-        <div class="border-b border-gray-200 px-4 py-5 sm:px-6">
-                <div class="-ml-4 -mt-4 flex flex-wrap items-center justify-between sm:flex-nowrap">
-                        <div class="ml-4 mt-4">
-                                <h3 class="text-base font-semibold text-gray-300">Symbols</h3>
-                                <p class="mt-1 text-sm text-gray-500">Explore and manage your symbols here.</p>
-                        </div>
+        <div class="pnv-shell">
+            <div class="pnv-header">
+                <div>
+                    <p class="pnv-eyebrow">Symbol Database</p>
+                    <h1 class="pnv-title">Dream Symbols</h1>
+                    <p class="pnv-subtitle">
+                        Explore recurring motifs and meanings linked across dream entries.
+                    </p>
                 </div>
+                <Link
+                    :href="route('library')"
+                    class="rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+                >
+                    Open Public Library
+                </Link>
+            </div>
 
-                <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        <li v-for="symbol in symbols" :key="symbol.id" class="col-span-1 flex flex-col divide-y divide-gray-700 rounded-lg bg-gray-800 text-center shadow">
-                                <div class="flex flex-1 flex-col p-8" :v-tippy="symbol.title">
-                                        <img v-if="symbol.image" class="mx-auto h-32 w-32 shrink-0 rounded-full" :src="symbol.image" alt="">
-                                        <div v-else v-tippy="'Add Image!'" class="mx-auto mt-4 h-32 w-32 shrink-0 rounded-full bg-gray-700 text-gray-300 flex items-center justify-center">
-                                                <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                                </svg>
-                                        </div>
+            <div v-if="symbols.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <article
+                    v-for="symbol in symbols"
+                    :key="symbol.id"
+                    class="pnv-panel transition hover:border-slate-600 hover:bg-slate-900/85"
+                >
+                    <div class="pnv-panel-body">
+                        <div class="flex items-start gap-4">
+                            <img
+                                v-if="symbol.featured_image"
+                                class="h-16 w-16 rounded-md object-cover"
+                                :src="symbol.featured_image"
+                                :alt="symbol.title"
+                            >
+                            <div
+                                v-else
+                                class="flex h-16 w-16 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-xs text-slate-400"
+                            >
+                                No image
+                            </div>
 
-                                        <div class="flex items">
+                            <div class="min-w-0 flex-1">
+                                <h2 class="text-xl font-semibold text-slate-100">
+                                    <Link
+                                        :href="route('symbols.show', { symbol: symbol.symbol_key })"
+                                        class="hover:text-sky-200"
+                                    >
+                                        {{ symbol.title }}
+                                    </Link>
+                                </h2>
+                                <p class="mt-2 text-sm leading-6 text-slate-300">
+                                    {{ symbol.description }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
 
-                                                <NavLink
-                                                        :href="route('symbols.show', { symbol: symbol.symbol_key })"
-                                                        :active="route().current('symbols.show', { id: symbol.symbol_key })"
-                                                        class="mt-6 text-sm font-medium text-gray-300"
-                                                >
-                                                        {{ symbol.title }}
-                                                </NavLink>
-                                        </div>
-                                </div>
-                        </li>
-                </ul>
+            <div v-else class="pnv-panel">
+                <div class="pnv-panel-body">
+                    <h2 class="text-xl font-semibold text-slate-100">No symbols yet</h2>
+                    <p class="mt-2 text-sm text-slate-300">
+                        Symbols will populate as dreams are analyzed.
+                    </p>
+                </div>
+            </div>
         </div>
     </AuthenticatedLayout>
 </template>
-
-<script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
-
-defineProps({
-        symbols: {
-                type: Array,
-                required: true
-        }
-});
-</script>

@@ -23,9 +23,10 @@ class StoreDreamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'exists:App\Models\User,id'],
             'title' => ['nullable', 'string'],
-            'dream_content' => ['nullable', 'string'],
+            'dream_content' => ['required', 'string'],
+            'dream_audio' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,webm,mp4', 'max:25600'],
+            'is_public' => ['nullable', 'boolean'],
 
             // 'dream_audio' => ['nullable', 'file', 'mimes:mp3', 'max:10240'],
             // 'dream_date' => ['required', 'datetime'],

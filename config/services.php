@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'analysis_model' => env('OPENAI_ANALYSIS_MODEL', 'gpt-4.1-mini'),
+        'symbol_model' => env('OPENAI_SYMBOL_MODEL', 'gpt-4.1-mini'),
+        'image_model' => env('OPENAI_IMAGE_MODEL', 'gpt-image-1'),
+        'transcription_model' => env('OPENAI_TRANSCRIPTION_MODEL', 'gpt-4o-mini-transcribe'),
+    ],
+
 ];

@@ -40,6 +40,14 @@ class SymbolController extends Controller
      */
     public function show(Symbol $symbol)
     {
+        $symbol->loadCount('dreams');
+        $symbol->load([
+            'dreams' => fn ($query) => $query
+                ->latest('dreams.created_at')
+                ->limit(8)
+                ->select('dreams.id', 'dreams.title', 'dreams.dream_date', 'dreams.sentiment'),
+        ]);
+
         return Inertia::render('Symbols/Show', [
             'symbol' => $symbol
         ]);

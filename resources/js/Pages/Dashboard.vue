@@ -1,27 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue'; // Import necessary Vue Composition API functions
+import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Chart, registerables } from 'chart.js'; // Import Chart.js
 
-// Register Chart.js components globally
-Chart.register(...registerables);
-
-// Define the props passed from the controller
 defineProps({
-    // radialChartData: Object, // Data passed from Laravel via Inertia
-});
-
-// Ref for the canvas element
-// const radialChart = ref(null);
-
-onMounted(() => {
-    // Ensure radialChartData is available and has labels
-    // if (!radialChartData || !radialChartData.labels || !radialChartData.labels.length) {
-    //     console.warn('No data available for the radial chart.');
-    //     return;
-    // }
-
-  
+    dreamsCount: {
+        type: Number,
+        default: 0,
+    },
 });
 </script>
 
@@ -29,25 +14,39 @@ onMounted(() => {
     <Head title="Dashboard" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Dashboard
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <!-- Radial Chart Section -->
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <h3 class="text-lg font-medium mb-4">Dream Insights (Coming Soon)</h3>
-                        <hr>
-                        <a href="/dreams/create" class="px-4 py-2 font-semibold text-white bg-blue-500 rounded hover:bg-blue-700">
-                            Submit a Dream
-                        </a>
-                        <!-- Use the ref for the canvas -->
-                    </div>
+        <div class="pnv-shell">
+            <div class="pnv-header">
+                <div>
+                    <p class="pnv-eyebrow">Night Vision</p>
+                    <h1 class="pnv-title">Dashboard</h1>
+                    <p class="pnv-subtitle">
+                        Quick overview of your dream activity and analysis pipeline.
+                    </p>
                 </div>
+                <Link
+                    :href="route('dreams.create')"
+                    class="rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
+                >
+                    Submit Dream
+                </Link>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-3">
+                <article class="pnv-panel">
+                    <div class="pnv-panel-body">
+                        <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Dream Entries</p>
+                        <p class="mt-3 text-4xl font-semibold text-slate-100">{{ dreamsCount }}</p>
+                    </div>
+                </article>
+
+                <article class="pnv-panel md:col-span-2">
+                    <div class="pnv-panel-body">
+                        <h2 class="text-xl font-semibold text-slate-100">Dream Insights</h2>
+                        <p class="mt-2 text-sm text-slate-300">
+                            Your personalized insight visualizations will appear here as your dataset grows.
+                        </p>
+                    </div>
+                </article>
             </div>
         </div>
     </AuthenticatedLayout>

@@ -1,73 +1,104 @@
-<template>
-  <AuthenticatedLayout>
-    <div class="py-24 sm:py-32">
-      <div class="mx-auto max-w-7xl px-6 lg:px-8">
-        <div class="mx-auto max-w-2xl text-center">
-          <h2 class="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">Dream Entries</h2>
-          <p class="mt-2 text-lg/8 text-gray-300">Explore and manage your dream entries here.</p>
-        </div>
-        <div class="mx-auto mt-16 grid max-w-2xl auto-rows-fr grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          <article
-            v-for="dream in dreams"
-            :key="dream.id"
-            :style="{
-              background: getGradient(dream.sentiment)
-            }"
-            class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl px-8 pb-8 pt-80 sm:pt-48 lg:pt-80"
-          >
-            <div class="absolute inset-0 -z-10 rounded-2xl ring-1 ring-inset ring-gray-900/10" />
-            <div class="flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
-                <time :datetime="dream.date" class="mr-8">{{ new Date(dream.created_at).toLocaleDateString() || 'Unknown date' }}</time>
-            </div>
-            <h3 class="mt-3 text-lg/6 font-semibold text-white">
-              <a :href="`/dreams/${dream.id}`">
-                <span class="absolute inset-0" />
-                {{ dream.title }}
-              </a>
-            </h3>
-          </article>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sticky Add Dream Button -->
-    <div class="fixed bottom-6 right-6">
-      <a
-        href="/dreams/create"
-        class="flex items-center justify-center px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-full shadow hover:bg-blue-500 focus:outline-none focus:ring focus:ring-blue-300"
-      >
-        Add Dream
-      </a>
-    </div>
-  </AuthenticatedLayout>
-</template>
-
 <script setup>
+import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
-const placeholderAuthorImage =
-  'https://via.placeholder.com/64x64.png?text=Author';
+const props = defineProps({
+    dreams: {
+        type: Array,
+        required: true,
+    },
+});
 
-/**
- * Get the appropriate gradient based on the dream sentiment.
- * @param {string} sentiment - The sentiment of the dream.
- * @returns {string} - The CSS gradient background.
- */
-const getGradient = (sentiment) => {
-  if (sentiment === 'negative') {
-    return 'linear-gradient(to right, #240b36, #c31432)';
-  } else if (sentiment === 'positive') {
-    return 'linear-gradient(to right, #92FE9D, #00C9FF)';
-  } else if (sentiment === 'neutral') {
-    return 'linear-gradient(to right, #3498db, #2c3e50)';
-  }
-  return 'linear-gradient(to right, #1d2b64, #f8cdda)'; // Default gradient
+const sentimentLabel = (sentiment) => {
+    if (!sentiment) {
+        return 'Unclassified';
+    }
+
+    return sentiment.charAt(0).toUpperCase() + sentiment.slice(1);
 };
 
-defineProps({
-  dreams: {
-    type: Array,
-    required: true,
-  },
-});
+const sentimentClasses = (sentiment) => {
+    if (sentiment === 'positive') {
+        return 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40';
+    }
+    if (sentiment === 'negative') {
+        return 'bg-rose-500/20 text-rose-200 border-rose-400/40';
+    }
+    if (sentiment === 'neutral') {
+        return 'bg-sky-500/20 text-sky-200 border-sky-400/40';
+    }
+
+    return 'bg-slate-700/60 text-slate-200 border-slate-500/40';
+};
 </script>
+
+<template>
+    <Head title="Dreams" />
+
+    <AuthenticatedLayout>
+        <div class="pnv-shell">
+            <div class="pnv-header">
+                <div>
+                    <p class="pnv-eyebrow">Dream Archive</p>
+                    <h1 class="pnv-title">Dream Entries</h1>
+                    <p class="pnv-subtitle">
+                        Review past submissions, sentiment, and generated interpretations.
+                    </p>
+                </div>
+                <Link
+                    :href="route('dreams.create')"
+                    class="rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
+                >
+                    Add Dream
+                </Link>
+            </div>
+
+            <div v-if="dreams.length" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <article
+                    v-for="dream in props.dreams"
+                    :key="dream.id"
+                    class="pnv-panel transition hover:border-slate-600 hover:bg-slate-900/85"
+                >
+                    <div class="pnv-panel-body">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <time class="text-xs uppercase tracking-[0.12em] text-slate-400">
+                                {{ new Date(dream.created_at).toLocaleDateString() }}
+                            </time>
+                            <span
+                                :class="[
+                                    'inline-flex rounded-md border px-2 py-1 text-xs font-medium',
+                                    sentimentClasses(dream.sentiment),
+                                ]"
+                            >
+                                {{ sentimentLabel(dream.sentiment) }}
+                            </span>
+                        </div>
+
+                        <h2 class="text-xl font-semibold text-slate-100">
+                            <Link :href="route('dreams.show', { dream: dream.id })" class="hover:text-sky-200">
+                                {{ dream.title || 'Untitled Dream' }}
+                            </Link>
+                        </h2>
+
+                        <p class="mt-2 text-xs uppercase tracking-[0.12em] text-slate-400">
+                            {{ dream.is_public ? 'Public' : 'Private' }}
+                        </p>
+
+                        <p class="mt-3 max-h-24 overflow-hidden text-sm leading-6 text-slate-300">
+                            {{ dream.dream_content || 'No dream content available.' }}
+                        </p>
+                    </div>
+                </article>
+            </div>
+
+            <div v-else class="pnv-panel">
+                <div class="pnv-panel-body">
+                    <h2 class="text-xl font-semibold text-slate-100">No dreams yet</h2>
+                    <p class="mt-2 text-sm text-slate-300">
+                        Submit your first dream to start building your private library.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>

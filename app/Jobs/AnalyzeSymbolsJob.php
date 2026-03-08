@@ -4,12 +4,12 @@ namespace App\Jobs;
 
 use App\Models\Dream;
 use App\Models\Symbol;
+use App\Services\OpenAiDreamService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -32,12 +32,11 @@ class AnalyzeSymbolsJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle()
+    public function handle(OpenAiDreamService $openAiDreamService)
     {
         Log::info('AnalyzeSymbolsJob started for dream', ['dream_id' => $this->dream->id]);
 
         try {
-            // Get existing symbols
             $existingSymbols = Symbol::all()->map(function ($symbol) {
                 return [
                     'title' => $symbol->title,
@@ -47,35 +46,17 @@ class AnalyzeSymbolsJob implements ShouldQueue
 
             Log::info('Fetched existing symbols', ['count' => count($existingSymbols)]);
 
-            // Prepare the payload for the webhook
-            $webhookUrl = rtrim(env('N8N_URL'), '/') . '/webhook/symbol';
-            $payload = [
-                'dream_content' => $this->dream->dream_content,
-                'pre_existing_symbols' => $existingSymbols,
-            ];
-
-            Log::info('Sending request to webhook', ['url' => $webhookUrl, 'payload' => $payload]);
-
-            // Send the request to the AI webhook
-            $response = Http::post($webhookUrl, $payload);
-
-            // Log the raw response
-            Log::info('Received response from webhook', ['status' => $response->status(), 'body' => $response->body()]);
-
-            // Check if the response is successful
-            if (!$response->successful()) {
-                Log::error('Webhook request failed', ['status' => $response->status(), 'body' => $response->body()]);
-                return;
-            }
-
-            $symbolsData = $response->json('symbols');
+            $symbolsData = $openAiDreamService->extractSymbols(
+                $this->dream->dream_content,
+                $existingSymbols,
+            );
 
             if (empty($symbolsData)) {
-                Log::warning('No symbols returned from the webhook');
+                Log::warning('No symbols returned from OpenAI');
                 return;
             }
 
-            Log::info('Symbols received from webhook', ['symbols' => $symbolsData]);
+            Log::info('Symbols received from OpenAI', ['symbols' => $symbolsData]);
 
             $symbolIds = [];
 

@@ -14,27 +14,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        $user = User::firstOrCreate(
+        User::firstOrCreate(
             ['email' => 'admin@admin.com'],
             [
                 'name' => 'Admin User',
                 'email_verified_at' => now(),
-                'password' => bcrypt('asdfasdf'), // Ensure this matches your password hashing
+                'password' => bcrypt('asdfasdf'),
                 'remember_token' => Str::random(10),
             ]
         );
+
+        $this->call([
+            SymbolSeeder::class,
+        ]);
+
+        if (!filter_var(env('SEED_SAMPLE_DATA', false), FILTER_VALIDATE_BOOL)) {
+            return;
+        }
 
         User::factory(10)->create();
 
         $this->call([
             DreamSeeder::class,
-        ]);
-
-        // symbol seeder
-        $this->call([
-            SymbolSeeder::class,
         ]);
     }
 }

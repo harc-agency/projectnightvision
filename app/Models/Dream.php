@@ -21,6 +21,8 @@ class Dream extends Model
         'title',
         'overall_theme',
         'analysis',
+        'ai_image_url',
+        'dream_audio_path',
         'sentiment',
         'sleep_duration',
         'location',
@@ -30,6 +32,8 @@ class Dream extends Model
     protected $casts = [
         'is_public' => 'boolean',
         'dream_date' => 'date',
+        'location' => 'array',
+        'weather' => 'array',
     ];
 
     public function user()

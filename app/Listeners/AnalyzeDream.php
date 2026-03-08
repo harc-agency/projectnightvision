@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 use App\Events\DreamCreated;
-use Illuminate\Support\Facades\Http;
 
 class AnalyzeDream
 {
@@ -17,18 +16,6 @@ class AnalyzeDream
      */
     public function handle(DreamCreated $event): void
     {
-
-        dd(
-            $event
-        );
-
-        $url = env('N8N_URL').'/webhook/dream';
-        // http request to a web hook env('N8N_URL')
-        $request = Http::post($url, [
-            'content' => $event->dream_content,
-        ]);
-
-        //$request
-
+        // Legacy event hook retained for compatibility.
     }
 }
