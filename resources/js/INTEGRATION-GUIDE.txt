@@ -1,0 +1,42 @@
+Integration Guide
+=================
+
+WordPress
+---------
+
+- Sign in to WordPress as admin user
+
+- Install my-globe.zip via Plugins > Add New > Upload Plugin
+  (or unzip the files and upload them to /wp-content/plugins/my-globe)
+ 
+- Activate the plugin
+
+- Paste this shortcode into a block or editor:  [hyper-my-globe]  
+  (or use this in a theme file: <?php echo do_shortcode('[hyper-my-globe]'); ?>)
+  
+
+Other Systems and HTML Pages
+----------------------------
+
+- Unzip my-globe.zip and upload the files to the webserver or a CDN
+  (if you are using a CDN, see the documentation for "CORS")
+
+- Paste this into your page:
+  <script async src="./my-globe.loader.js?v1"></script>
+  
+  Replace ./ with the correct URL, e.g. 
+  https://www.example.com/files/my-globe/my-globe.loader.js
+
+  Use a way provided by your CMS or page builder to insert HTML.
+  You can also integrate it into a template or static HTML file.
+  
+  
+All in One Bundle
+-----------------
+
+The simple and fail-safe method, with the library and assets embedded in the HTML.
+
+- Unzip my-globe.zip, open my-globe.bundle.htm in a text editor and copy all.
+
+- Paste it into your page. Use a way provided by your CMS or page builder 
+  to insert HTML. You can also integrate it into a template or static HTML file.  

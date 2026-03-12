@@ -40,6 +40,8 @@ return [
         'analysis_model' => env('OPENAI_ANALYSIS_MODEL', 'gpt-4.1-mini'),
         'symbol_model' => env('OPENAI_SYMBOL_MODEL', 'gpt-4.1-mini'),
         'image_model' => env('OPENAI_IMAGE_MODEL', 'gpt-image-1'),
+        'symbol_image_quality' => env('OPENAI_SYMBOL_IMAGE_QUALITY', 'low'),
+        'symbol_image_size' => env('OPENAI_SYMBOL_IMAGE_SIZE', '1024x1024'),
         'transcription_model' => env('OPENAI_TRANSCRIPTION_MODEL', 'gpt-4o-mini-transcribe'),
     ],
 

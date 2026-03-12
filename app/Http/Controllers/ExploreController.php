@@ -23,30 +23,38 @@ class ExploreController extends Controller
             'negative' => $dreams->where('sentiment', 'negative')->count(),
         ];
 
-        $themes = $dreams
-            ->filter(fn ($dream) => !empty($dream->overall_theme))
-            ->groupBy('overall_theme')
-            ->map(fn ($group) => $group->count())
-            ->sortDesc()
-            ->take(8)
-            ->map(fn ($count, $theme) => ['theme' => $theme, 'count' => $count])
+        $symbols = Symbol::query()
+            ->whereHas('dreams', fn ($query) => $query->where('is_public', true))
+            ->withCount([
+                'dreams as public_dreams_count' => fn ($query) => $query->where('is_public', true),
+            ])
+            ->orderByDesc('public_dreams_count')
+            ->orderBy('title')
+            ->limit(8)
+            ->get(['symbol_key', 'title'])
+            ->map(fn (Symbol $symbol) => [
+                'symbol_key' => $symbol->symbol_key,
+                'title' => $symbol->title,
+                'count' => (int) $symbol->public_dreams_count,
+            ])
             ->values();
 
         $points = $dreams
             ->map(function ($dream) {
-                $coords = $this->extractCoordinates($dream->location);
+                $location = $this->extractLocation($dream->location);
 
-                if ($coords === null) {
+                if ($location === null) {
                     return null;
                 }
 
                 return [
                     'id' => $dream->id,
-                    'lat' => $coords['lat'],
-                    'lng' => $coords['lng'],
+                    'lat' => $location['lat'],
+                    'lng' => $location['lng'],
                     'title' => $dream->title ?: 'Untitled Dream',
                     'sentiment' => $dream->sentiment ?: 'neutral',
                     'theme' => $dream->overall_theme,
+                    'location_label' => $location['label'],
                 ];
             })
             ->filter()
@@ -57,7 +65,7 @@ class ExploreController extends Controller
             'stats' => [
                 'total_public_dreams' => $dreams->count(),
                 'sentiment' => $sentiment,
-                'themes' => $themes,
+                'symbols' => $symbols,
             ],
             'points' => $points,
         ]);
@@ -101,14 +109,16 @@ class ExploreController extends Controller
         ]);
     }
 
-    protected function extractCoordinates(mixed $location): ?array
+    protected function extractLocation(mixed $location): ?array
     {
-        if (!is_array($location)) {
+        $payload = $this->normalizeLocationPayload($location);
+
+        if ($payload === null) {
             return null;
         }
 
-        $lat = $location['lat'] ?? $location['latitude'] ?? null;
-        $lng = $location['lng'] ?? $location['lon'] ?? $location['longitude'] ?? null;
+        $lat = $payload['lat'] ?? $payload['latitude'] ?? null;
+        $lng = $payload['lng'] ?? $payload['lon'] ?? $payload['longitude'] ?? null;
 
         if (!is_numeric($lat) || !is_numeric($lng)) {
             return null;
@@ -121,6 +131,37 @@ class ExploreController extends Controller
             return null;
         }
 
-        return ['lat' => $lat, 'lng' => $lng];
+        $label = $payload['label'] ?? $payload['name'] ?? null;
+
+        if (!is_string($label) || trim($label) === '') {
+            $city = $payload['city'] ?? null;
+            $country = $payload['country'] ?? null;
+            $parts = array_filter([
+                is_string($city) ? trim($city) : null,
+                is_string($country) ? trim($country) : null,
+            ]);
+            $label = !empty($parts) ? implode(', ', $parts) : null;
+        }
+
+        return [
+            'lat' => $lat,
+            'lng' => $lng,
+            'label' => is_string($label) && trim($label) !== '' ? trim($label) : null,
+        ];
+    }
+
+    protected function normalizeLocationPayload(mixed $location): ?array
+    {
+        if (is_array($location)) {
+            return $location;
+        }
+
+        if (!is_string($location) || trim($location) === '') {
+            return null;
+        }
+
+        $decoded = json_decode($location, true);
+
+        return is_array($decoded) ? $decoded : null;
     }
 }

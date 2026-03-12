@@ -72,7 +72,28 @@ class AnalyzeSymbolsJob implements ShouldQueue
                         'symbol_key' => Str::slug($symbolData['title'], '_'), // Generate a slug as a symbol_key
                     ]
                 );
-                
+
+                if (empty($symbol->featured_image)) {
+                    try {
+                        $symbolImage = $openAiDreamService->generateSymbolImage(
+                            $symbol->title,
+                            $symbol->description,
+                            $this->dream->dream_content,
+                        );
+
+                        if ($symbolImage) {
+                            $symbol->update(['featured_image' => $symbolImage]);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error('Symbol image generation failed', [
+                            'dream_id' => $this->dream->id,
+                            'symbol_id' => $symbol->id,
+                            'symbol_title' => $symbol->title,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+
                 // Collect symbol IDs for pivot table
                 $symbolIds[] = $symbol->id;
             }

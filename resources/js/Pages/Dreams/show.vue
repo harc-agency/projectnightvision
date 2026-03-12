@@ -19,7 +19,6 @@ const props = defineProps({
 
 const activeSymbol = ref(null);
 const isSymbolDrawerOpen = ref(false);
-const imageLoadError = ref(false);
 const isUpdatingVisibility = ref(false);
 const isRegeneratingAssets = ref(false);
 
@@ -119,7 +118,7 @@ const isOwner = computed(() => {
 });
 
 const needsAiAssets = computed(() => {
-    return !props.dream?.analysis || !props.dream?.ai_image_url || !(props.dream?.symbols?.length > 0);
+    return !props.dream?.analysis || !(props.dream?.symbols?.length > 0);
 });
 
 const formatRelatedDate = (value) => {
@@ -291,25 +290,9 @@ onBeforeUnmount(() => {
                                 :disabled="isRegeneratingAssets"
                                 @click="regenerateAssets"
                             >
-                                {{ isRegeneratingAssets ? 'Generating AI Assets...' : 'Regenerate AI Assets' }}
+                                {{ isRegeneratingAssets ? 'Generating Analysis + Symbols...' : 'Regenerate Analysis + Symbols' }}
                             </button>
                         </div>
-                    </section>
-
-                    <section class="pnv-panel overflow-hidden">
-                        <div class="pnv-panel-body border-b border-slate-700/60">
-                            <h2 class="text-2xl font-semibold text-slate-100">AI Dream Image</h2>
-                        </div>
-                        <img
-                            v-if="dream.ai_image_url && !imageLoadError"
-                            :src="dream.ai_image_url"
-                            alt="AI generated visualization of this dream"
-                            class="h-auto w-full object-cover"
-                            @error="imageLoadError = true"
-                        />
-                        <p v-else class="p-5 text-sm text-slate-300">
-                            Image unavailable right now. Please check back shortly.
-                        </p>
                     </section>
 
                     <section v-if="dream.dream_audio_url" class="pnv-panel">
@@ -395,6 +378,12 @@ onBeforeUnmount(() => {
                                     :key="symbol.id"
                                     class="rounded-md border border-slate-700/70 bg-slate-800/70 p-3"
                                 >
+                                    <img
+                                        v-if="symbol.featured_image"
+                                        :src="symbol.featured_image"
+                                        :alt="symbol.title"
+                                        class="mb-3 h-24 w-full rounded-md object-cover"
+                                    />
                                     <button
                                         type="button"
                                         class="text-left text-sm font-semibold text-sky-200 hover:text-sky-100"
@@ -476,6 +465,12 @@ onBeforeUnmount(() => {
                         </div>
 
                         <div class="flex-1 overflow-y-auto p-5">
+                            <img
+                                v-if="activeSymbol.featured_image"
+                                :src="activeSymbol.featured_image"
+                                :alt="activeSymbol.title"
+                                class="mb-4 h-48 w-full rounded-md object-cover"
+                            />
                             <p class="text-sm leading-7 text-slate-200">
                                 {{ activeSymbol.description || 'No description available yet.' }}
                             </p>

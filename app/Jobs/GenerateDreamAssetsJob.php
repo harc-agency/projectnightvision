@@ -32,35 +32,14 @@ class GenerateDreamAssetsJob implements ShouldQueue
             || empty($dream->analysis)
             || empty($dream->overall_theme)
             || empty($dream->sentiment);
-        $needsImage = $this->force || empty($dream->ai_image_url);
         $needsSymbols = $this->force || !$dream->symbols()->exists();
-        $analysisContext = $dream->analysis;
 
         if ($needsAnalysis) {
             try {
                 $analysis = $openAiDreamService->analyzeDream($dream->dream_content);
                 $dream->update($analysis);
-                $analysisContext = $analysis['analysis'] ?? $analysisContext;
             } catch (\Throwable $e) {
                 Log::error('Dream analysis generation failed', [
-                    'dream_id' => $dream->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        if ($needsImage) {
-            try {
-                $imageUrl = $openAiDreamService->generateDreamImage(
-                    $dream->dream_content,
-                    $analysisContext,
-                );
-
-                if ($imageUrl) {
-                    $dream->update(['ai_image_url' => $imageUrl]);
-                }
-            } catch (\Throwable $e) {
-                Log::error('Dream image generation failed', [
                     'dream_id' => $dream->id,
                     'error' => $e->getMessage(),
                 ]);

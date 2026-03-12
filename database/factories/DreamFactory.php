@@ -20,12 +20,17 @@ class DreamFactory extends Factory
      */
     public function definition(): array
     {
+        $latitude = (float) $this->faker->latitude();
+        $longitude = (float) $this->faker->longitude();
+        $city = $this->faker->city();
+        $countryCode = strtoupper((string) $this->faker->countryCode());
+
         return [
             'user_id' => User::factory(),
             'title' => $this->faker->sentence(),
             'dream_content' => $this->faker->paragraph(),
-            'is_public' => $this->faker->boolean(true),
-            'dream_date' => $this->faker->dateTimeBetween('now', '+1 week')->setTime(3, 0),
+            'is_public' => $this->faker->boolean(70),
+            'dream_date' => $this->faker->dateTimeBetween('-90 days', 'now'),
             'mood_before_sleep' => $this->faker->numberBetween(1, 5),
             'mood_after_waking' => $this->faker->numberBetween(1, 5),
             'intensity' => $this->faker->numberBetween(1, 5),
@@ -34,15 +39,16 @@ class DreamFactory extends Factory
             'analysis' => $this->faker->paragraph(),
             'sentiment' => $this->faker->randomElement(['positive', 'negative', 'neutral']),
             'sleep_duration' => $this->faker->optional()->randomFloat(2, 0, 12),
-            'location' => json_encode([
-                'latitude' => $this->faker->latitude(),
-                'longitude' => $this->faker->longitude()
-            ]),
-            'weather' => json_encode([
+            'location' => [
+                'lat' => $latitude,
+                'lng' => $longitude,
+                'label' => sprintf('%s, %s', $city, $countryCode),
+            ],
+            'weather' => [
                 'temperature' => $this->faker->numberBetween(-30, 50),
                 'condition' => $this->faker->word(),
                 'humidity' => $this->faker->numberBetween(0, 100)
-            ]),
+            ],
         ];
     }
 }

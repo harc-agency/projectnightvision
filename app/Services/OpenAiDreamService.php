@@ -126,10 +126,38 @@ class OpenAiDreamService
             'Style: cinematic, atmospheric, richly detailed, no text overlays.',
         ])));
 
+        return $this->generateImageFromPrompt($prompt);
+    }
+
+    public function generateSymbolImage(string $title, ?string $description = null, ?string $dreamContext = null): ?string
+    {
+        $prompt = trim(implode("\n\n", array_filter([
+            'Create a symbolic icon-style illustration for a dream interpretation library.',
+            'Primary symbol: ' . $title,
+            $description ? 'Meaning context: ' . $description : null,
+            $dreamContext ? 'Dream context: ' . Str::limit($dreamContext, 400) : null,
+            'Style: mystical, clean composition, no text, no lettering, centered subject.',
+        ])));
+
+        return $this->generateImageFromPrompt(
+            $prompt,
+            (string) config('services.openai.symbol_image_size', '1024x1024'),
+            (string) config('services.openai.symbol_image_quality', 'low'),
+            'symbol-images/'
+        );
+    }
+
+    protected function generateImageFromPrompt(
+        string $prompt,
+        string $size = '1024x1024',
+        string $quality = 'auto',
+        string $pathPrefix = 'dream-images/',
+    ): ?string {
         $response = $this->request()->post($this->baseUrl . '/images/generations', [
             'model' => config('services.openai.image_model'),
             'prompt' => $prompt,
-            'size' => '1024x1024',
+            'size' => $size,
+            'quality' => $quality,
         ]);
         $response->throw();
 
@@ -143,7 +171,7 @@ class OpenAiDreamService
                 throw new RuntimeException('Failed to decode generated image payload.');
             }
 
-            $path = 'dream-images/' . Str::uuid() . '.png';
+            $path = trim($pathPrefix, '/') . '/' . Str::uuid() . '.png';
             Storage::disk('public')->put($path, $binary);
 
             return Storage::url($path);

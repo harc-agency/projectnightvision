@@ -34,6 +34,12 @@ defineProps({
             <div class="grid gap-4 lg:grid-cols-3">
                 <section class="pnv-panel lg:col-span-2">
                     <div class="pnv-panel-body">
+                        <img
+                            v-if="symbol.featured_image"
+                            :src="symbol.featured_image"
+                            :alt="symbol.title"
+                            class="mb-4 h-56 w-full rounded-md object-cover"
+                        >
                         <h2 class="text-2xl font-semibold text-slate-100">Interpretation</h2>
                         <p class="mt-3 text-sm leading-7 text-slate-200">
                             {{ symbol.description }}

@@ -41,7 +41,7 @@ const logoRoute = computed(() => (authUser.value ? route('dashboard') : '/'));
                 <div class="flex h-16 items-center justify-between">
                     <div class="flex items-center gap-8">
                         <Link :href="logoRoute" class="flex shrink-0 items-center">
-                            <ApplicationLogo class="block h-9 w-auto fill-current text-slate-100" />
+                            <ApplicationLogo class="block h-9 w-auto" />
                         </Link>
 
                         <div class="hidden items-center gap-1 sm:flex">
