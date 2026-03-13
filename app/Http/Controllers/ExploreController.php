@@ -13,6 +13,7 @@ class ExploreController extends Controller
     {
         $dreams = Dream::query()
             ->where('is_public', true)
+            ->with(['symbols:id,symbol_key,title'])
             ->latest('created_at')
             ->limit(300)
             ->get(['id', 'title', 'sentiment', 'overall_theme', 'location', 'created_at']);
@@ -55,6 +56,13 @@ class ExploreController extends Controller
                     'sentiment' => $dream->sentiment ?: 'neutral',
                     'theme' => $dream->overall_theme,
                     'location_label' => $location['label'],
+                    'symbols' => $dream->symbols
+                        ->map(fn (Symbol $symbol) => [
+                            'symbol_key' => $symbol->symbol_key,
+                            'title' => $symbol->title,
+                        ])
+                        ->values()
+                        ->all(),
                 ];
             })
             ->filter()

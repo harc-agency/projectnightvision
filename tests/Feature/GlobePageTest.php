@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Dream;
+use App\Models\Symbol;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -22,10 +23,19 @@ test('globe page maps only public dreams with valid coordinates', function () {
             ],
         ]);
 
+    $mappedSymbol = Symbol::query()->create([
+        'symbol_key' => 'bridge',
+        'title' => 'Bridge',
+        'description' => 'Bridge symbol',
+    ]);
+
+    $mappedDream->symbols()->attach($mappedSymbol);
+
     Dream::factory()
         ->for($user)
         ->create([
             'is_public' => true,
+            'sentiment' => 'neutral',
             'location' => null,
         ]);
 
@@ -33,6 +43,7 @@ test('globe page maps only public dreams with valid coordinates', function () {
         ->for($user)
         ->create([
             'is_public' => false,
+            'sentiment' => 'negative',
             'location' => [
                 'lat' => 51.5072,
                 'lng' => -0.1276,
@@ -55,7 +66,9 @@ test('globe page maps only public dreams with valid coordinates', function () {
         ->where('points.0.lng', -74.006)
         ->where('points.0.location_label', 'New York, US')
         ->where('points.0.sentiment', 'positive')
-        ->where('points.0.theme', 'Wonder'));
+        ->where('points.0.theme', 'Wonder')
+        ->where('points.0.symbols.0.symbol_key', 'bridge')
+        ->where('points.0.symbols.0.title', 'Bridge'));
 });
 
 test('globe page supports legacy double-encoded location payloads', function () {

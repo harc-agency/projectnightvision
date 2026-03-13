@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\Response;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
@@ -18,7 +18,7 @@ class OpenAiDreamService
 
     public function analyzeDream(string $dreamContent): array
     {
-        $response = $this->request()->post($this->baseUrl . '/chat/completions', [
+        $response = $this->request()->post($this->baseUrl.'/chat/completions', [
             'model' => config('services.openai.analysis_model'),
             'temperature' => 0.4,
             'response_format' => [
@@ -45,7 +45,7 @@ class OpenAiDreamService
         $payload = $this->extractJsonPayload($response);
 
         $sentiment = strtolower((string) Arr::get($payload, 'sentiment', 'neutral'));
-        if (!in_array($sentiment, ['positive', 'neutral', 'negative'], true)) {
+        if (! in_array($sentiment, ['positive', 'neutral', 'negative'], true)) {
             $sentiment = 'neutral';
         }
 
@@ -59,7 +59,9 @@ class OpenAiDreamService
 
     public function extractSymbols(string $dreamContent, array $existingSymbols): array
     {
-        $response = $this->request()->post($this->baseUrl . '/chat/completions', [
+        $targetCount = max((int) config('services.openai.symbol_target_count', 3), 1);
+
+        $response = $this->request()->post($this->baseUrl.'/chat/completions', [
             'model' => config('services.openai.symbol_model'),
             'temperature' => 0.2,
             'response_format' => [
@@ -72,9 +74,14 @@ class OpenAiDreamService
                         'You identify dream symbols from dream text.',
                         'Return ONLY valid JSON in this shape:',
                         '{"symbols":[{"title":"string","description":"string"}]}',
-                        'Return between 3 and 8 symbols.',
+                        'Return exactly ' . $targetCount . ' symbols.',
+                        'Rank them from most central to least central to the dream.',
+                        'Use only the top ' . $targetCount . ' strongest symbols in the dream.',
                         'Keep descriptions concise (1 sentence).',
                         'Prefer symbols from the pre-existing library when semantically equivalent.',
+                        'If a pre-existing symbol fits, reuse its title exactly.',
+                        'Do not return near-duplicate titles that only differ by pluralization, punctuation, or alias formatting.',
+                        'Choose one canonical title per concept and avoid slash-separated alternatives such as "Bombs/Explosions".',
                     ]),
                 ],
                 [
@@ -90,13 +97,13 @@ class OpenAiDreamService
         $payload = $this->extractJsonPayload($response);
         $symbols = Arr::get($payload, 'symbols', []);
 
-        if (!is_array($symbols)) {
+        if (! is_array($symbols)) {
             return [];
         }
 
         $normalized = [];
         foreach ($symbols as $symbol) {
-            if (!is_array($symbol)) {
+            if (! is_array($symbol)) {
                 continue;
             }
 
@@ -113,7 +120,7 @@ class OpenAiDreamService
             ];
         }
 
-        return $normalized;
+        return array_slice($normalized, 0, $targetCount);
     }
 
     public function generateDreamImage(string $dreamContent, ?string $analysis = null): ?string
@@ -122,7 +129,7 @@ class OpenAiDreamService
             'Create a surreal but emotionally coherent dream scene.',
             'Dream narrative:',
             $dreamContent,
-            $analysis ? 'Dream analysis context: ' . $analysis : null,
+            $analysis ? 'Dream analysis context: '.$analysis : null,
             'Style: cinematic, atmospheric, richly detailed, no text overlays.',
         ])));
 
@@ -132,11 +139,14 @@ class OpenAiDreamService
     public function generateSymbolImage(string $title, ?string $description = null, ?string $dreamContext = null): ?string
     {
         $prompt = trim(implode("\n\n", array_filter([
-            'Create a symbolic icon-style illustration for a dream interpretation library.',
-            'Primary symbol: ' . $title,
-            $description ? 'Meaning context: ' . $description : null,
-            $dreamContext ? 'Dream context: ' . Str::limit($dreamContext, 400) : null,
-            'Style: mystical, clean composition, no text, no lettering, centered subject.',
+            'Create a square symbol illustration for Project Night Vision in a uniform celestial-archive style.',
+            'Subject: one centered emblem representing "'.$title.'".',
+            $description ? 'Meaning context: '.$description : null,
+            $dreamContext ? 'Optional dream context: '.Str::limit($dreamContext, 400) : null,
+            'Art direction: scholarly occult, antique astronomical engraving mixed with modern icon design. Crisp silhouette, symmetrical or near-symmetrical composition, fine etched linework, subtle low-relief shading, soft halo, minimal background detail.',
+            'Color treatment: strict monochrome only. Use a single grayscale palette with black, charcoal, slate, silver, and ivory tonal variation only. No blue, cyan, orange, gold, red, or any accent colors.',
+            'Composition rules: single subject only, centered, generous negative space, safe margins, readable at thumbnail size, designed to look strong on a dark interface.',
+            'Avoid: photorealism, painterly scenes, multiple objects, landscapes, characters, hands, text, letters, numbers, frames, watermarks, colorful lighting, colorful backgrounds, busy textures.',
         ])));
 
         return $this->generateImageFromPrompt(
@@ -153,7 +163,7 @@ class OpenAiDreamService
         string $quality = 'auto',
         string $pathPrefix = 'dream-images/',
     ): ?string {
-        $response = $this->request()->post($this->baseUrl . '/images/generations', [
+        $response = $this->request()->post($this->baseUrl.'/images/generations', [
             'model' => config('services.openai.image_model'),
             'prompt' => $prompt,
             'size' => $size,
@@ -171,7 +181,7 @@ class OpenAiDreamService
                 throw new RuntimeException('Failed to decode generated image payload.');
             }
 
-            $path = trim($pathPrefix, '/') . '/' . Str::uuid() . '.png';
+            $path = trim($pathPrefix, '/').'/'.Str::uuid().'.png';
             Storage::disk('public')->put($path, $binary);
 
             return Storage::url($path);
@@ -195,7 +205,7 @@ class OpenAiDreamService
         try {
             $response = $this->request()
                 ->attach('file', $stream, $audioFile->getClientOriginalName())
-                ->post($this->baseUrl . '/audio/transcriptions', [
+                ->post($this->baseUrl.'/audio/transcriptions', [
                     'model' => config('services.openai.transcription_model'),
                 ]);
         } finally {
@@ -216,7 +226,7 @@ class OpenAiDreamService
     {
         $apiKey = config('services.openai.api_key');
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             throw new RuntimeException('OPENAI_API_KEY is not configured.');
         }
 
@@ -258,7 +268,7 @@ class OpenAiDreamService
         $cleaned = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', $content);
         $decoded = json_decode((string) $cleaned, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
             throw new RuntimeException('Unable to parse JSON from OpenAI response.');
         }
 

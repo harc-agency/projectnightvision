@@ -23,10 +23,19 @@ class StoreDreamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['nullable', 'string'],
+            'title' => ['required', 'string', 'max:255'],
+            'dream_location' => ['nullable', 'string', 'max:255'],
             'dream_content' => ['required', 'string'],
             'dream_audio' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,webm,mp4', 'max:25600'],
             'is_public' => ['nullable', 'boolean'],
+            'save_location_to_profile' => ['nullable', 'boolean'],
+            'location' => ['nullable', 'array'],
+            'location.lat' => ['required_with:location', 'numeric', 'between:-90,90'],
+            'location.lng' => ['required_with:location', 'numeric', 'between:-180,180'],
+            'location.label' => ['nullable', 'string', 'max:255'],
+            'location.accuracy' => ['nullable', 'numeric', 'min:0'],
+            'location.source' => ['nullable', 'string', 'max:64'],
+            'location.captured_at' => ['nullable', 'date'],
 
             // 'dream_audio' => ['nullable', 'file', 'mimes:mp3', 'max:10240'],
             // 'dream_date' => ['required', 'datetime'],

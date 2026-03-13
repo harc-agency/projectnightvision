@@ -14,6 +14,7 @@ class Dream extends Model
         'dream_content',
         'is_public',
         'dream_date',
+        'dream_location',
         'mood_before_sleep',
         'mood_after_waking',
         'intensity',

@@ -18,8 +18,7 @@ defineProps({
             <div class="pnv-header">
                 <div>
                     <p class="pnv-eyebrow">Symbol Profile</p>
-                    <h1 class="pnv-title">{{ symbol.title }}</h1>
-                    <p class="pnv-subtitle">
+                    <p class="mt-2 text-sm text-slate-300">
                         Referenced by {{ symbol.dreams_count || 0 }} dream entries.
                     </p>
                 </div>
@@ -31,38 +30,32 @@ defineProps({
                 </Link>
             </div>
 
-            <div class="grid gap-4 lg:grid-cols-3">
-                <section class="pnv-panel lg:col-span-2">
-                    <div class="pnv-panel-body">
+            <section class="pnv-panel">
+                <div class="pnv-panel-body grid gap-6 lg:grid-cols-[minmax(0,24rem)_1fr] lg:items-center">
+                    <div class="flex aspect-square items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/30 p-4">
                         <img
                             v-if="symbol.featured_image"
                             :src="symbol.featured_image"
                             :alt="symbol.title"
-                            class="mb-4 h-56 w-full rounded-md object-cover"
+                            class="max-h-full w-auto max-w-full rounded-sm object-contain"
                         >
-                        <h2 class="text-2xl font-semibold text-slate-100">Interpretation</h2>
-                        <p class="mt-3 text-sm leading-7 text-slate-200">
+                        <div
+                            v-else
+                            class="flex h-full w-full items-center justify-center rounded-lg border border-dashed border-slate-700 text-sm text-slate-400"
+                        >
+                            No image yet
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="pnv-eyebrow">Interpretation</p>
+                        <h1 class="mt-2 text-4xl font-semibold leading-tight text-slate-100">{{ symbol.title }}</h1>
+                        <p class="mt-4 text-sm leading-7 text-slate-200">
                             {{ symbol.description }}
                         </p>
                     </div>
-                </section>
-
-                <section class="pnv-panel">
-                    <div class="pnv-panel-body">
-                        <h3 class="text-xl font-semibold text-slate-100">Details</h3>
-                        <dl class="mt-3 space-y-2 text-sm text-slate-300">
-                            <div class="flex items-center justify-between gap-3">
-                                <dt>Key</dt>
-                                <dd class="text-slate-200">{{ symbol.symbol_key }}</dd>
-                            </div>
-                            <div class="flex items-center justify-between gap-3">
-                                <dt>Linked dreams</dt>
-                                <dd class="text-slate-200">{{ symbol.dreams_count || 0 }}</dd>
-                            </div>
-                        </dl>
-                    </div>
-                </section>
-            </div>
+                </div>
+            </section>
 
             <section class="pnv-panel mt-4">
                 <div class="pnv-panel-body">

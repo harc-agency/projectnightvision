@@ -6,6 +6,7 @@ use App\Http\Requests\StoreDreamRequest;
 use App\Http\Requests\UpdateDreamRequest;
 use App\Jobs\GenerateDreamAssetsJob;
 use App\Models\Dream;
+use App\Services\LocationPredictionService;
 use App\Services\OpenAiDreamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -41,23 +42,43 @@ class DreamController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreDreamRequest $request)
+    public function store(StoreDreamRequest $request, LocationPredictionService $locationPredictionService)
     {
         $data = $request->validated();
+        $user = $request->user();
         $audioFile = $request->file('dream_audio');
-        unset($data['dream_audio']);
+        unset($data['dream_audio'], $data['save_location_to_profile']);
         $data['dream_date'] = now()->format('Y-m-d H:i:s');
-        $title = Str::squish((string) ($data['title'] ?? ''));
-        $data['title'] = $title !== ''
-            ? $title
-            : Str::limit(Str::squish((string) $data['dream_content']), 80, '...');
+        $title = Str::squish((string) $data['title']);
+        $dreamLocation = Str::squish((string) ($data['dream_location'] ?? ''));
+        $data['title'] = $title;
+        $data['dream_location'] = $dreamLocation !== '' ? $dreamLocation : null;
+        $data['location'] = $this->normalizeLocationPayload(
+            $data['location'] ?? null,
+            $data['dream_location'],
+        );
+
+        if ($data['location'] === null && $data['dream_location']) {
+            $data['location'] = $this->normalizeLocationPayload(
+                $locationPredictionService->resolve($data['dream_location']),
+                $data['dream_location'],
+            );
+        }
+
         $data['is_public'] = $request->boolean('is_public');
 
         if ($audioFile) {
             $data['dream_audio_path'] = $audioFile->store('dream-audio', 'public');
         }
 
-        $dream = auth()->user()->dreams()->create($data);
+        $dream = $user->dreams()->create($data);
+
+        if ($request->boolean('save_location_to_profile') && $data['dream_location']) {
+            $user->forceFill([
+                'preferred_dream_location' => $data['dream_location'],
+            ])->save();
+        }
+
         GenerateDreamAssetsJob::dispatchAfterResponse($dream->id);
 
         return redirect()->route('dreams.show', $dream);
@@ -123,9 +144,16 @@ class DreamController extends Controller
             abort(Response::HTTP_FORBIDDEN);
         }
 
-        $dream->load('symbols');
+        $targetSymbolCount = max((int) config('services.openai.symbol_target_count', 3), 1);
+        $dream->load([
+            'symbols' => fn ($query) => $query
+                ->orderBy('dream_symbol.id')
+                ->limit($targetSymbolCount),
+        ]);
         $dream->setAttribute('ai_image_url', $this->resolveDreamImageUrl($dream));
         $dream->setAttribute('dream_audio_url', $this->resolveDreamAudioUrl($dream));
+        $dream->setAttribute('symbol_target_count', $targetSymbolCount);
+        $dream->setAttribute('ai_assets_pending', $this->dreamAssetsPending($dream, $targetSymbolCount));
 
         return Inertia::render('Dreams/show', [
             'dream' => $dream,
@@ -250,6 +278,47 @@ class DreamController extends Controller
         return ltrim(Str::after($path, '/storage/'), '/');
     }
 
+    protected function normalizeLocationPayload(mixed $location, ?string $dreamLocation): ?array
+    {
+        if (!is_array($location)) {
+            return null;
+        }
+
+        $lat = $location['lat'] ?? null;
+        $lng = $location['lng'] ?? null;
+
+        if (!is_numeric($lat) || !is_numeric($lng)) {
+            return null;
+        }
+
+        $payload = [
+            'lat' => round((float) $lat, 6),
+            'lng' => round((float) $lng, 6),
+        ];
+
+        $label = $location['label'] ?? $dreamLocation;
+        if (is_string($label) && trim($label) !== '') {
+            $payload['label'] = Str::limit(Str::squish($label), 255);
+        }
+
+        $accuracy = $location['accuracy'] ?? null;
+        if (is_numeric($accuracy) && (float) $accuracy >= 0) {
+            $payload['accuracy'] = round((float) $accuracy, 2);
+        }
+
+        $source = $location['source'] ?? null;
+        if (is_string($source) && trim($source) !== '') {
+            $payload['source'] = Str::limit(Str::snake(trim($source)), 64);
+        }
+
+        $capturedAt = $location['captured_at'] ?? null;
+        if (is_string($capturedAt) && trim($capturedAt) !== '') {
+            $payload['captured_at'] = trim($capturedAt);
+        }
+
+        return $payload;
+    }
+
     protected function buildRelatedDreams(Dream $dream): array
     {
         $theme = trim((string) $dream->overall_theme);
@@ -350,5 +419,18 @@ class DreamController extends Controller
             'own' => $ownDreams->map($mapRelatedDream)->values()->all(),
             'public' => $publicDreams->map($mapRelatedDream)->values()->all(),
         ];
+    }
+
+    protected function dreamAssetsPending(Dream $dream, int $targetSymbolCount): bool
+    {
+        if (blank($dream->analysis) || blank($dream->overall_theme) || blank($dream->sentiment)) {
+            return true;
+        }
+
+        if ($dream->symbols->count() < $targetSymbolCount) {
+            return true;
+        }
+
+        return $dream->symbols->contains(fn ($symbol) => blank($symbol->featured_image));
     }
 }

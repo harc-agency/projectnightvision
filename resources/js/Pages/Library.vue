@@ -14,6 +14,12 @@ const page = usePage();
 
 const isAuthenticated = computed(() => !!page.props.auth?.user);
 
+const dreamHref = (dream) => (
+    isAuthenticated.value
+        ? route('dreams.show', { dream: dream.id })
+        : route('login')
+);
+
 const sentimentClasses = (sentiment) => {
     if (sentiment === 'positive') {
         return 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40';
@@ -38,6 +44,36 @@ const formatDate = (value) => {
     }
 
     return parsed.toLocaleDateString();
+};
+
+const eventFromInteractiveElement = (event) => (
+    event.target instanceof Element
+        && !!event.target.closest('a, button, input, select, textarea, summary, [role="button"], [role="link"]')
+);
+
+const visitDream = (dream) => {
+    window.location.href = dreamHref(dream);
+};
+
+const handleCardClick = (dream, event) => {
+    if (eventFromInteractiveElement(event)) {
+        return;
+    }
+
+    visitDream(dream);
+};
+
+const handleCardKeydown = (dream, event) => {
+    if (eventFromInteractiveElement(event)) {
+        return;
+    }
+
+    if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+    }
+
+    event.preventDefault();
+    visitDream(dream);
 };
 </script>
 
@@ -66,7 +102,11 @@ const formatDate = (value) => {
                 <article
                     v-for="dream in dreams"
                     :key="dream.id"
-                    class="pnv-panel transition hover:border-slate-600 hover:bg-slate-900/85"
+                    class="pnv-panel cursor-pointer transition hover:border-slate-600 hover:bg-slate-900/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                    tabindex="0"
+                    role="link"
+                    @click="handleCardClick(dream, $event)"
+                    @keydown="handleCardKeydown(dream, $event)"
                 >
                     <div class="pnv-panel-body">
                         <div class="mb-3 flex items-center justify-between gap-3">
@@ -112,7 +152,7 @@ const formatDate = (value) => {
 
                         <div class="mt-5">
                             <Link
-                                :href="isAuthenticated ? route('dreams.show', { dream: dream.id }) : route('login')"
+                                :href="dreamHref(dream)"
                                 class="text-sm font-medium text-sky-200 hover:text-sky-100"
                             >
                                 {{ isAuthenticated ? 'View Dream Detail' : 'Log In to View Detail' }}

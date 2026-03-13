@@ -15,18 +15,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['email' => 'admin@admin.com'],
+            ['email' => 'holm.tanner@gmail.com'],
             [
                 'name' => 'Admin User',
                 'email_verified_at' => now(),
-                'password' => bcrypt('asdfasdf'),
+                'password' => bcrypt('Harcallyenations1)'),
                 'remember_token' => Str::random(10),
             ]
         );
-
-        $this->call([
-            SymbolSeeder::class,
-        ]);
 
         if (!filter_var(env('SEED_SAMPLE_DATA', false), FILTER_VALIDATE_BOOL)) {
             return;

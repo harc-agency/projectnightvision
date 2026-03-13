@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\DreamController;
 use App\Http\Controllers\ExploreController;
+use App\Http\Controllers\LocationPredictionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SymbolController;
 use Illuminate\Foundation\Application;
@@ -27,6 +28,9 @@ Route::middleware('auth')->group(function () {
     Route::get('dreams/{dream}/media/{kind}', [DreamController::class, 'media'])->name('dreams.media');
     Route::patch('dreams/{dream}/visibility', [DreamController::class, 'updateVisibility'])->name('dreams.visibility');
     Route::post('dreams/{dream}/generate-assets', [DreamController::class, 'generateAssets'])->name('dreams.generate-assets');
+    Route::get('locations/predict', [LocationPredictionController::class, 'index'])
+        ->middleware('throttle:30,1')
+        ->name('locations.predict');
     Route::resource('dreams', DreamController::class);
     Route::post('dreams/transcribe', [DreamController::class, 'transcribe'])->name('dreams.transcribe');
     Route::resource('symbols', SymbolController::class);

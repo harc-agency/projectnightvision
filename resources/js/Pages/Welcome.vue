@@ -1,7 +1,15 @@
 <template>
   <section class="bg-video-section">
     <!-- Background Video -->
-    <video class="bg-video" autoplay muted loop playsinline>
+    <video
+      ref="backgroundVideo"
+      class="bg-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+    >
       <source src="/videos/globe.mp4" type="video/mp4" />
       Your browser does not support the video tag.
     </video>
@@ -9,24 +17,24 @@
     <!-- Overlays -->
     <div class="bg-video-overlay"></div> <!-- Main Overlay -->
     <div class="bg-video-blur"></div> <!-- Right-side blur overlay -->
+    <!--
     <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
       <div class="flex lg:col-start-2 lg:justify-center">
         <img src="/images/logo-white.png" alt="Project Night Vision logo" class="h-12 w-auto lg:h-16" />
       </div>
       <nav class="-mx-3 flex flex-1 justify-end">
-
-
         <template>
           <Link :href="route('login')" class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-          Log in
+            Log in
           </Link>
 
           <Link v-if="canRegister" :href="route('register')" class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-          Register
+            Register
           </Link>
         </template>
       </nav>
     </header>
+    -->
 
 
     <!-- Right-aligned Content -->
@@ -46,8 +54,46 @@
   </section>
 </template>
 
-<script>
-export default {};
+<script setup>
+import { onMounted, ref } from 'vue';
+
+const backgroundVideo = ref(null);
+
+const ensureVideoPlayback = async () => {
+  const video = backgroundVideo.value;
+
+  if (!video) {
+    return;
+  }
+
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  video.setAttribute('muted', '');
+  video.setAttribute('playsinline', '');
+  video.setAttribute('webkit-playsinline', 'true');
+
+  try {
+    await video.play();
+  } catch {
+    // Some mobile browsers defer autoplay until enough media has loaded.
+  }
+};
+
+onMounted(() => {
+  const video = backgroundVideo.value;
+
+  if (!video) {
+    return;
+  }
+
+  ensureVideoPlayback();
+
+  if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    video.addEventListener('loadedmetadata', ensureVideoPlayback, { once: true });
+    video.addEventListener('canplay', ensureVideoPlayback, { once: true });
+  }
+});
 </script>
 
 <style scoped>

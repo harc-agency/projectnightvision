@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
@@ -20,9 +20,15 @@ const props = defineProps({
 const activeSymbol = ref(null);
 const isSymbolDrawerOpen = ref(false);
 const isUpdatingVisibility = ref(false);
-const isRegeneratingAssets = ref(false);
+const isPollingAiAssets = ref(false);
+const isReloadingAiAssets = ref(false);
+const aiAssetPollTimer = ref(null);
+const aiAssetPollAttempts = ref(0);
 
 const page = usePage();
+const AI_ASSET_POLL_INITIAL_DELAY_MS = 1200;
+const AI_ASSET_POLL_INTERVAL_MS = 2500;
+const AI_ASSET_POLL_MAX_ATTEMPTS = 24;
 
 const symbolLookup = computed(() => {
     const lookup = {};
@@ -99,6 +105,35 @@ const formattedDate = computed(() => {
     return parsed.toLocaleDateString();
 });
 
+const formattedLocation = computed(() => {
+    const manualLocation = props.dream?.dream_location;
+
+    if (typeof manualLocation === 'string' && manualLocation.trim() !== '') {
+        return manualLocation.trim();
+    }
+
+    const location = props.dream?.location;
+
+    if (!location || typeof location !== 'object') {
+        return 'Unknown';
+    }
+
+    const label = location.label || location.name;
+
+    if (typeof label === 'string' && label.trim() !== '') {
+        return label.trim();
+    }
+
+    const lat = Number(location.lat ?? location.latitude);
+    const lng = Number(location.lng ?? location.lon ?? location.longitude);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return 'Unknown';
+    }
+
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+});
+
 const relatedOwn = computed(() => {
     return Array.isArray(props.related?.own) ? props.related.own : [];
 });
@@ -118,7 +153,15 @@ const isOwner = computed(() => {
 });
 
 const needsAiAssets = computed(() => {
+    if (typeof props.dream?.ai_assets_pending === 'boolean') {
+        return props.dream.ai_assets_pending;
+    }
+
     return !props.dream?.analysis || !(props.dream?.symbols?.length > 0);
+});
+
+const shouldPollAiAssets = computed(() => {
+    return isOwner.value && needsAiAssets.value;
 });
 
 const formatRelatedDate = (value) => {
@@ -147,6 +190,79 @@ const sentimentClasses = computed(() => {
 
     return 'bg-slate-700/60 text-slate-200 border-slate-500/40';
 });
+
+const clearAiAssetPollTimer = () => {
+    if (aiAssetPollTimer.value === null) {
+        return;
+    }
+
+    window.clearTimeout(aiAssetPollTimer.value);
+    aiAssetPollTimer.value = null;
+};
+
+const stopAiAssetPolling = (resetAttempts = false) => {
+    clearAiAssetPollTimer();
+    isPollingAiAssets.value = false;
+    isReloadingAiAssets.value = false;
+
+    if (resetAttempts) {
+        aiAssetPollAttempts.value = 0;
+    }
+};
+
+const beginAiAssetPolling = (
+    delay = AI_ASSET_POLL_INITIAL_DELAY_MS,
+    resetAttempts = false,
+) => {
+    if (!shouldPollAiAssets.value) {
+        stopAiAssetPolling(resetAttempts);
+        return;
+    }
+
+    if (resetAttempts) {
+        aiAssetPollAttempts.value = 0;
+    }
+
+    if (aiAssetPollAttempts.value >= AI_ASSET_POLL_MAX_ATTEMPTS) {
+        clearAiAssetPollTimer();
+        isPollingAiAssets.value = false;
+        return;
+    }
+
+    clearAiAssetPollTimer();
+    isPollingAiAssets.value = true;
+
+    aiAssetPollTimer.value = window.setTimeout(() => {
+        if (!shouldPollAiAssets.value || isReloadingAiAssets.value) {
+            return;
+        }
+
+        isReloadingAiAssets.value = true;
+        aiAssetPollAttempts.value += 1;
+
+        router.reload({
+            only: ['dream', 'related'],
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => {
+                isReloadingAiAssets.value = false;
+
+                if (!shouldPollAiAssets.value) {
+                    stopAiAssetPolling(true);
+                    return;
+                }
+
+                if (aiAssetPollAttempts.value >= AI_ASSET_POLL_MAX_ATTEMPTS) {
+                    clearAiAssetPollTimer();
+                    isPollingAiAssets.value = false;
+                    return;
+                }
+
+                beginAiAssetPolling(AI_ASSET_POLL_INTERVAL_MS);
+            },
+        });
+    }, delay);
+};
 
 const openSymbolDrawer = (symbolKey) => {
     const symbol = symbolLookup.value[symbolKey];
@@ -201,35 +317,29 @@ const toggleVisibility = () => {
     );
 };
 
-const regenerateAssets = () => {
-    if (!isOwner.value || isRegeneratingAssets.value) {
-        return;
-    }
+watch(
+    shouldPollAiAssets,
+    (value) => {
+        if (!value) {
+            stopAiAssetPolling(true);
+            return;
+        }
 
-    isRegeneratingAssets.value = true;
+        if (isPollingAiAssets.value || isReloadingAiAssets.value) {
+            return;
+        }
 
-    router.post(
-        route('dreams.generate-assets', { dream: props.dream.id }),
-        {},
-        {
-            preserveScroll: true,
-            onFinish: () => {
-                window.setTimeout(() => {
-                    router.reload({
-                        only: ['dream', 'related'],
-                    });
-                    isRegeneratingAssets.value = false;
-                }, 2500);
-            },
-        },
-    );
-};
+        beginAiAssetPolling(AI_ASSET_POLL_INITIAL_DELAY_MS, true);
+    },
+    { immediate: true },
+);
 
 onMounted(() => {
     window.addEventListener('keydown', onSymbolDrawerKeydown);
 });
 
 onBeforeUnmount(() => {
+    stopAiAssetPolling();
     window.removeEventListener('keydown', onSymbolDrawerKeydown);
 });
 </script>
@@ -280,18 +390,9 @@ onBeforeUnmount(() => {
                                 </span>
                             </div>
                             <p class="text-sm leading-7 text-slate-200">
-                                {{ dream.analysis || 'Analysis is not available yet.' }}
+                                {{ dream.analysis || (isPollingAiAssets ? 'Generating analysis. This page will refresh automatically.' : 'Analysis is not available yet.') }}
                             </p>
 
-                            <button
-                                v-if="isOwner && needsAiAssets"
-                                type="button"
-                                class="mt-4 inline-flex rounded-md border border-slate-600 px-3 py-2 text-xs font-medium text-slate-100 transition hover:bg-slate-800 disabled:opacity-60"
-                                :disabled="isRegeneratingAssets"
-                                @click="regenerateAssets"
-                            >
-                                {{ isRegeneratingAssets ? 'Generating Analysis + Symbols...' : 'Regenerate Analysis + Symbols' }}
-                            </button>
                         </div>
                     </section>
 
@@ -395,8 +496,39 @@ onBeforeUnmount(() => {
                                         {{ symbol.description }}
                                     </p>
                                 </article>
+                                <p v-if="isPollingAiAssets" class="flex items-center gap-2 text-sm text-slate-300">
+                                    <span class="symbol-loader__dot" aria-hidden="true" />
+                                    Generating remaining symbol assets. This panel will refresh automatically.
+                                </p>
                             </div>
-                            <p v-else class="mt-3 text-sm text-slate-300">No symbols linked yet.</p>
+                            <div v-else-if="isPollingAiAssets" class="mt-3 space-y-3">
+                                <div class="symbol-loader rounded-md border border-slate-700/70 bg-slate-800/55 p-3">
+                                    <div class="symbol-loader__row">
+                                        <span class="symbol-loader__thumb" aria-hidden="true" />
+                                        <div class="min-w-0 flex-1 space-y-2">
+                                            <span class="symbol-loader__line symbol-loader__line--title" aria-hidden="true" />
+                                            <span class="symbol-loader__line symbol-loader__line--body" aria-hidden="true" />
+                                            <span class="symbol-loader__line symbol-loader__line--body-short" aria-hidden="true" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="symbol-loader rounded-md border border-slate-700/70 bg-slate-800/45 p-3">
+                                    <div class="symbol-loader__row">
+                                        <span class="symbol-loader__thumb" aria-hidden="true" />
+                                        <div class="min-w-0 flex-1 space-y-2">
+                                            <span class="symbol-loader__line symbol-loader__line--title" aria-hidden="true" />
+                                            <span class="symbol-loader__line symbol-loader__line--body-short" aria-hidden="true" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="flex items-center gap-2 text-sm text-slate-300">
+                                    <span class="symbol-loader__dot" aria-hidden="true" />
+                                    Generating symbols. This panel will refresh automatically.
+                                </p>
+                            </div>
+                            <p v-else class="mt-3 text-sm text-slate-300">
+                                No symbols linked yet.
+                            </p>
                         </div>
                     </section>
 
@@ -415,6 +547,10 @@ onBeforeUnmount(() => {
                                 <div class="flex items-center justify-between gap-3">
                                     <dt>Public</dt>
                                     <dd class="text-slate-200">{{ dream.is_public ? 'Yes' : 'No' }}</dd>
+                                </div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt>Location</dt>
+                                    <dd class="text-right text-slate-200">{{ formattedLocation }}</dd>
                                 </div>
                             </dl>
 
@@ -502,5 +638,98 @@ onBeforeUnmount(() => {
 .drawer-fade-enter-from,
 .drawer-fade-leave-to {
     opacity: 0;
+}
+
+.symbol-loader {
+    position: relative;
+    overflow: hidden;
+}
+
+.symbol-loader::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(186, 230, 253, 0.05) 35%,
+        rgba(186, 230, 253, 0.18) 50%,
+        rgba(186, 230, 253, 0.05) 65%,
+        transparent 100%
+    );
+    animation: symbol-shimmer 1.8s ease-in-out infinite;
+}
+
+.symbol-loader__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.symbol-loader__thumb,
+.symbol-loader__line,
+.symbol-loader__dot {
+    display: block;
+    background: linear-gradient(180deg, rgba(148, 163, 184, 0.32), rgba(148, 163, 184, 0.16));
+}
+
+.symbol-loader__thumb {
+    height: 4.75rem;
+    width: 4.75rem;
+    flex-shrink: 0;
+    border-radius: 0.5rem;
+}
+
+.symbol-loader__line {
+    height: 0.75rem;
+    width: 100%;
+    border-radius: 9999px;
+}
+
+.symbol-loader__line--title {
+    width: 58%;
+    height: 0.9rem;
+}
+
+.symbol-loader__line--body {
+    width: 92%;
+}
+
+.symbol-loader__line--body-short {
+    width: 68%;
+}
+
+.symbol-loader__dot {
+    height: 0.6rem;
+    width: 0.6rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: #7dd3fc;
+    box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.5);
+    animation: symbol-pulse 1.4s ease-out infinite;
+}
+
+@keyframes symbol-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes symbol-pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.5);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(125, 211, 252, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(125, 211, 252, 0);
+    }
 }
 </style>

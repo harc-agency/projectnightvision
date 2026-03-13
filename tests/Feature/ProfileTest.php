@@ -7,7 +7,7 @@ test('profile page is displayed', function () {
 
     $response = $this
         ->actingAs($user)
-        ->get('/profile');
+        ->get(route('profile.edit', $user));
 
     $response->assertOk();
 });
@@ -17,19 +17,21 @@ test('profile information can be updated', function () {
 
     $response = $this
         ->actingAs($user)
-        ->patch('/profile', [
+        ->patch(route('profile.update', $user), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'preferred_dream_location' => 'Denver, Colorado',
         ]);
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
+        ->assertRedirect(route('profile.edit', $user));
 
     $user->refresh();
 
     $this->assertSame('Test User', $user->name);
     $this->assertSame('test@example.com', $user->email);
+    $this->assertSame('Denver, Colorado', $user->preferred_dream_location);
     $this->assertNull($user->email_verified_at);
 });
 
@@ -38,14 +40,14 @@ test('email verification status is unchanged when the email address is unchanged
 
     $response = $this
         ->actingAs($user)
-        ->patch('/profile', [
+        ->patch(route('profile.update', $user), [
             'name' => 'Test User',
             'email' => $user->email,
         ]);
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
+        ->assertRedirect(route('profile.edit', $user));
 
     $this->assertNotNull($user->refresh()->email_verified_at);
 });
@@ -55,7 +57,7 @@ test('user can delete their account', function () {
 
     $response = $this
         ->actingAs($user)
-        ->delete('/profile', [
+        ->delete(route('profile.destroy', $user), [
             'password' => 'password',
         ]);
 
@@ -72,14 +74,14 @@ test('correct password must be provided to delete account', function () {
 
     $response = $this
         ->actingAs($user)
-        ->from('/profile')
-        ->delete('/profile', [
+        ->from(route('profile.edit', $user))
+        ->delete(route('profile.destroy', $user), [
             'password' => 'wrong-password',
         ]);
 
     $response
         ->assertSessionHasErrors('password')
-        ->assertRedirect('/profile');
+        ->assertRedirect(route('profile.edit', $user));
 
     $this->assertNotNull($user->fresh());
 });

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSymbolRequest;
 use App\Http\Requests\UpdateSymbolRequest;
+use App\Models\Dream;
 use App\Models\Symbol;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Inertia\Inertia;
 
 class SymbolController extends Controller
@@ -40,17 +43,61 @@ class SymbolController extends Controller
      */
     public function show(Symbol $symbol)
     {
-        $symbol->loadCount('dreams');
-        $symbol->load([
-            'dreams' => fn ($query) => $query
+        $linkedDreamsQuery = $this->visibleLinkedDreamsQuery($symbol);
+        $linkedDreamsCount = (clone $linkedDreamsQuery)->distinct('dreams.id')->count('dreams.id');
+        $linkedDreams = (clone $linkedDreamsQuery)
+            ->latest('dreams.created_at')
+            ->limit(8)
+            ->get(['dreams.id', 'dreams.title', 'dreams.dream_date', 'dreams.sentiment']);
+
+        if ($linkedDreamsCount === 0) {
+            $fallbackDreamsQuery = $this->fallbackDreamsQuery($symbol);
+
+            $linkedDreamsCount = (clone $fallbackDreamsQuery)->count('dreams.id');
+            $linkedDreams = (clone $fallbackDreamsQuery)
                 ->latest('dreams.created_at')
                 ->limit(8)
-                ->select('dreams.id', 'dreams.title', 'dreams.dream_date', 'dreams.sentiment'),
-        ]);
+                ->get(['dreams.id', 'dreams.title', 'dreams.dream_date', 'dreams.sentiment']);
+        }
+
+        $symbol->setRelation('dreams', $linkedDreams);
+        $symbol->setAttribute('dreams_count', $linkedDreamsCount);
 
         return Inertia::render('Symbols/Show', [
             'symbol' => $symbol
         ]);
+    }
+
+    protected function visibleLinkedDreamsQuery(Symbol $symbol): BelongsToMany
+    {
+        return $symbol->dreams()
+            ->where(function (Builder $query) {
+                $query->where('dreams.user_id', auth()->id())
+                    ->orWhere('dreams.is_public', true);
+            });
+    }
+
+    protected function fallbackDreamsQuery(Symbol $symbol): Builder
+    {
+        $phrases = collect([
+            trim((string) $symbol->title),
+            trim(str_replace(['_', '-'], ' ', (string) $symbol->symbol_key)),
+        ])
+            ->filter()
+            ->unique()
+            ->values();
+
+        return Dream::query()
+            ->where(function (Builder $query) {
+                $query->where('user_id', auth()->id())
+                    ->orWhere('is_public', true);
+            })
+            ->where(function (Builder $query) use ($phrases) {
+                foreach ($phrases as $phrase) {
+                    $query->orWhere('title', 'like', '%' . $phrase . '%')
+                        ->orWhere('dream_content', 'like', '%' . $phrase . '%');
+                }
+            });
     }
 
     /**

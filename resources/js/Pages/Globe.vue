@@ -16,7 +16,15 @@ const props = defineProps({
 
 const page = usePage();
 const hoveredPoint = ref(null);
+const selectedPoint = ref(null);
 const globeError = ref('');
+const markerPalette = {
+    positive: '#38bdf8',
+    neutral: '#94a3b8',
+    negative: '#ef4444',
+};
+
+const authUser = computed(() => page.props.auth?.user ?? null);
 
 const safeSentiment = computed(() => ({
     positive: props.stats?.sentiment?.positive ?? 0,
@@ -26,25 +34,136 @@ const safeSentiment = computed(() => ({
 
 const totalPublicDreams = computed(() => props.stats?.total_public_dreams ?? 0);
 const mappedPointsCount = computed(() => props.points?.length ?? 0);
+const topSymbols = computed(() => Array.isArray(props.stats?.symbols) ? props.stats.symbols : []);
+const selectedSymbols = computed(() => Array.isArray(selectedPoint.value?.symbols) ? selectedPoint.value.symbols : []);
+const selectedSymbolKeys = computed(() => new Set(selectedSymbols.value.map((symbol) => symbol.symbol_key)));
+const activeInfoPoint = computed(() => selectedPoint.value ?? hoveredPoint.value);
+
+const displaySymbols = computed(() => {
+    const seen = new Set();
+    const topSymbolLookup = new Map(topSymbols.value.map((symbol) => [symbol.symbol_key, symbol]));
+    const symbols = [];
+
+    selectedSymbols.value.forEach((symbol) => {
+        if (!symbol?.symbol_key || seen.has(symbol.symbol_key)) {
+            return;
+        }
+
+        const topSymbol = topSymbolLookup.get(symbol.symbol_key);
+
+        symbols.push({
+            symbol_key: symbol.symbol_key,
+            title: symbol.title,
+            count: topSymbol?.count ?? null,
+        });
+
+        seen.add(symbol.symbol_key);
+    });
+
+    topSymbols.value.forEach((symbol) => {
+        if (!symbol?.symbol_key || seen.has(symbol.symbol_key)) {
+            return;
+        }
+
+        symbols.push(symbol);
+        seen.add(symbol.symbol_key);
+    });
+
+    return symbols;
+});
+
+const activeDreamHref = computed(() => {
+    if (!activeInfoPoint.value) {
+        return route('globe');
+    }
+
+    return authUser.value
+        ? route('dreams.show', { dream: activeInfoPoint.value.id })
+        : route('login');
+});
+
+const activeDreamLinkLabel = computed(() => (authUser.value ? 'Open Dream' : 'Log In to Open'));
 
 const markerLocation = (point) => `${point.lat} ${point.lng}`;
 
-const markerClass = (point) => {
-    const sentiment = point?.sentiment || 'neutral';
-    return `globe-marker globe-marker--${sentiment}`;
+const normalizeSentiment = (sentiment) => {
+    if (sentiment === 'positive' || sentiment === 'negative') {
+        return sentiment;
+    }
+
+    return 'neutral';
 };
+
+const sentimentLabel = (sentiment) => {
+    const normalized = normalizeSentiment(sentiment);
+
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const pointSummary = (point) => {
+    if (!point) {
+        return '';
+    }
+
+    const pieces = [sentimentLabel(point.sentiment)];
+
+    if (point.theme) {
+        pieces.push(point.theme);
+    }
+
+    const symbolCount = point.symbols?.length ?? 0;
+
+    if (symbolCount > 0) {
+        pieces.push(`${symbolCount} symbol${symbolCount === 1 ? '' : 's'}`);
+    }
+
+    return pieces.join(' • ');
+};
+
+const markerClass = (point) => {
+    const classes = ['globe-marker', `globe-marker--${normalizeSentiment(point?.sentiment)}`];
+
+    if (selectedPoint.value?.id === point?.id) {
+        classes.push('globe-marker--active');
+    }
+
+    return classes.join(' ');
+};
+
+const buildMarkerImage = (fillColor, isActive = false) => {
+    const accentStroke = isActive ? '#f8fafc' : '#020617';
+    const accentRing = isActive
+        ? '<circle cx="12" cy="12" r="10.25" fill="none" stroke="#f8fafc" stroke-width="2" opacity="0.95" />'
+        : '';
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            ${accentRing}
+            <circle cx="12" cy="12" r="8.5" fill="${fillColor}" stroke="${accentStroke}" stroke-width="2.25" />
+        </svg>
+    `.trim();
+
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+};
+
+const markerStyle = (point) => {
+    const sentiment = normalizeSentiment(point?.sentiment);
+    const isActive = selectedPoint.value?.id === point?.id;
+
+    return {
+        '--marker-image': buildMarkerImage(markerPalette[sentiment] ?? markerPalette.neutral, isActive),
+        '--marker-size': isActive ? '0.92' : '0.8',
+    };
+};
+
+const isSelectedSymbol = (symbol) => selectedSymbolKeys.value.has(symbol?.symbol_key);
 
 const handlePointClick = (point) => {
     if (!point) {
         return;
     }
 
-    if (!page.props.auth?.user) {
-        window.location.href = route('login');
-        return;
-    }
-
-    window.location.href = route('dreams.show', { dream: point.id });
+    selectedPoint.value = selectedPoint.value?.id === point.id ? null : point;
+    hoveredPoint.value = point;
 };
 
 const clearHover = () => {
@@ -74,10 +193,10 @@ onMounted(() => {
                 </div>
                 <div class="flex items-center gap-2">
                     <Link
-                        :href="page.props.auth?.user ? route('dreams.create') : route('login')"
+                        :href="authUser ? route('dreams.create') : route('login')"
                         class="rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
                     >
-                        {{ page.props.auth?.user ? 'Submit Dream' : 'Log In to Submit' }}
+                        {{ authUser ? 'Submit Dream' : 'Log In to Submit' }}
                     </Link>
                     <Link
                         :href="route('library')"
@@ -107,8 +226,8 @@ onMounted(() => {
                                     :key="`marker-${point.id}`"
                                     slot="markers"
                                     :class="markerClass(point)"
+                                    :style="markerStyle(point)"
                                     :data-location="markerLocation(point)"
-                                    :title="point.title || 'Untitled Dream'"
                                     href="#"
                                     @mouseenter="hoveredPoint = point"
                                     @mouseleave="clearHover"
@@ -124,16 +243,21 @@ onMounted(() => {
                                 }}
                             </div>
 
-                            <div v-if="hoveredPoint" class="globe-tooltip">
-                                <p class="text-sm font-semibold text-slate-100">
-                                    {{ hoveredPoint.title || 'Untitled Dream' }}
-                                </p>
-                                <p v-if="hoveredPoint.location_label" class="mt-1 text-xs text-slate-300">
-                                    {{ hoveredPoint.location_label }}
+                            <div v-if="activeInfoPoint" class="globe-tooltip">
+                                <p v-if="activeInfoPoint.location_label" class="text-sm font-semibold text-slate-100">
+                                    {{ activeInfoPoint.location_label }}
                                 </p>
                                 <p class="mt-1 text-xs text-slate-300">
-                                    {{ hoveredPoint.theme || 'No theme' }} • {{ hoveredPoint.sentiment || 'neutral' }}
+                                    {{ pointSummary(activeInfoPoint) }}
                                 </p>
+                                <div class="globe-tooltip__actions">
+                                    <p class="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                                        {{ selectedPoint ? 'Symbols highlighted on the right' : 'Click to inspect symbols' }}
+                                    </p>
+                                    <Link :href="activeDreamHref" class="globe-tooltip__link">
+                                        {{ activeDreamLinkLabel }}
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -160,16 +284,38 @@ onMounted(() => {
                     <article class="pnv-panel">
                         <div class="pnv-panel-body">
                             <h3 class="text-xl font-semibold text-slate-100">Top Symbols</h3>
+                            <p v-if="selectedPoint" class="mt-2 text-xs uppercase tracking-[0.14em] text-sky-300">
+                                Symbols from the selected dream are highlighted.
+                            </p>
                             <div class="mt-3 space-y-2">
                                 <div
-                                    v-for="symbol in stats.symbols"
+                                    v-for="symbol in displaySymbols"
                                     :key="symbol.symbol_key"
-                                    class="flex items-center justify-between rounded-md border border-slate-700/70 bg-slate-800/60 px-3 py-2 text-sm"
+                                    :class="[
+                                        'symbol-row',
+                                        { 'symbol-row--active': isSelectedSymbol(symbol) },
+                                    ]"
                                 >
-                                    <span class="text-slate-100">{{ symbol.title }}</span>
-                                    <span class="text-slate-300">{{ symbol.count }}</span>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-slate-100">{{ symbol.title }}</p>
+                                        <p
+                                            v-if="isSelectedSymbol(symbol)"
+                                            class="mt-1 text-[11px] uppercase tracking-[0.14em] text-sky-300"
+                                        >
+                                            Selected dream
+                                        </p>
+                                    </div>
+                                    <span class="text-slate-300">
+                                        {{ symbol.count ?? (isSelectedSymbol(symbol) ? 'Selected' : '') }}
+                                    </span>
                                 </div>
-                                <p v-if="!stats.symbols?.length" class="text-sm text-slate-300">
+                                <p
+                                    v-if="selectedPoint && !selectedSymbols.length && displaySymbols.length"
+                                    class="text-sm text-slate-300"
+                                >
+                                    This dream has no linked symbols yet.
+                                </p>
+                                <p v-if="!displaySymbols.length" class="text-sm text-slate-300">
                                     No symbol data yet.
                                 </p>
                             </div>
@@ -177,6 +323,7 @@ onMounted(() => {
                     </article>
                 </section>
             </div>
+
         </div>
     </AuthenticatedLayout>
 </template>
@@ -225,30 +372,94 @@ onMounted(() => {
     backdrop-filter: blur(2px);
 }
 
+.globe-tooltip__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.globe-tooltip__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: rgba(56, 189, 248, 0.18);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgb(125 211 252);
+    text-decoration: none;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.globe-tooltip__link:hover {
+    background: rgba(56, 189, 248, 0.28);
+    color: rgb(224 242 254);
+}
+
 .globe-marker {
     display: block;
-    width: 0.6rem;
-    height: 0.6rem;
+    width: 0.55rem;
+    height: 0.55rem;
     border-radius: 9999px;
-    border: 2px solid rgba(226, 232, 240, 0.92);
-    background: #38bdf8;
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 14px rgba(56, 189, 248, 0.65);
+    border: 1.5px solid rgba(226, 232, 240, 0.92);
+    background: #94a3b8;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 12px rgba(148, 163, 184, 0.55);
     text-decoration: none;
     pointer-events: auto;
+    transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.globe-marker:hover {
+    transform: scale(1.12);
 }
 
 .globe-marker--positive {
-    background: #22c55e;
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 14px rgba(34, 197, 94, 0.65);
+    background: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 14px rgba(56, 189, 248, 0.72);
 }
 
 .globe-marker--neutral {
-    background: #38bdf8;
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 14px rgba(56, 189, 248, 0.65);
+    background: #94a3b8;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 12px rgba(148, 163, 184, 0.55);
 }
 
 .globe-marker--negative {
-    background: #f97316;
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 14px rgba(249, 115, 22, 0.65);
+    background: #ef4444;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.55), 0 0 14px rgba(239, 68, 68, 0.72);
+}
+
+.globe-marker--active {
+    transform: scale(1.28);
+    box-shadow: 0 0 0 3px rgba(226, 232, 240, 0.92), 0 0 22px rgba(226, 232, 240, 0.38);
+}
+
+.symbol-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(51, 65, 85, 0.72);
+    background: rgba(30, 41, 59, 0.6);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.875rem;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.symbol-row--active {
+    border-color: rgba(56, 189, 248, 0.72);
+    background: rgba(14, 165, 233, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+}
+
+@media (max-width: 640px) {
+    .globe-tooltip__actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 </style>

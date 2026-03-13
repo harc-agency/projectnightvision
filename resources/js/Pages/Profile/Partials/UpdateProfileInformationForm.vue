@@ -19,6 +19,7 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    preferred_dream_location: user.preferred_dream_location ?? '',
 });
 </script>
 
@@ -35,7 +36,7 @@ const form = useForm({
         </header>
 
         <form
-            @submit.prevent="form.patch(route('profile.update'))"
+            @submit.prevent="form.patch(route('profile.update', { profile: user.id }))"
             class="mt-6 space-y-6"
         >
             <div>
@@ -67,6 +68,25 @@ const form = useForm({
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div>
+                <InputLabel for="preferred_dream_location" value="Default Dream Location" />
+
+                <TextInput
+                    id="preferred_dream_location"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.preferred_dream_location"
+                    autocomplete="address-level2"
+                    placeholder="Denver, Colorado"
+                />
+
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Prefill new dream submissions with a saved city or region.
+                </p>
+
+                <InputError class="mt-2" :message="form.errors.preferred_dream_location" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
