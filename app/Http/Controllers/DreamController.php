@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesStoredPublicMedia;
 use App\Http\Requests\StoreDreamRequest;
 use App\Http\Requests\UpdateDreamRequest;
 use App\Jobs\GenerateDreamAssetsJob;
 use App\Models\Dream;
+use App\Models\Symbol;
 use App\Services\LocationPredictionService;
 use App\Services\OpenAiDreamService;
 use Illuminate\Http\Request;
@@ -17,6 +19,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class DreamController extends Controller
 {
+    use ResolvesStoredPublicMedia;
+
     /**
      * Display a listing of the resource.
      */
@@ -150,8 +154,16 @@ class DreamController extends Controller
                 ->orderBy('dream_symbol.id')
                 ->limit($targetSymbolCount),
         ]);
-        $dream->setAttribute('ai_image_url', $this->resolveDreamImageUrl($dream));
+        $dream->setAttribute('ai_image_url', $this->resolveStoredPublicMediaUrl(
+            $dream->ai_image_url,
+            'dreams.media',
+            [
+                'dream' => $dream->id,
+                'kind' => 'image',
+            ],
+        ));
         $dream->setAttribute('dream_audio_url', $this->resolveDreamAudioUrl($dream));
+        $this->prepareSymbolsForDisplay($dream->symbols);
         $dream->setAttribute('symbol_target_count', $targetSymbolCount);
         $dream->setAttribute('ai_assets_pending', $this->dreamAssetsPending($dream, $targetSymbolCount));
 
@@ -168,19 +180,7 @@ class DreamController extends Controller
         }
 
         if ($kind === 'image') {
-            $storagePath = $this->extractStoragePath($dream->ai_image_url);
-
-            if ($storagePath && Storage::disk('public')->exists($storagePath)) {
-                return response()->file(Storage::disk('public')->path($storagePath), [
-                    'Cache-Control' => 'public, max-age=86400',
-                ]);
-            }
-
-            if (is_string($dream->ai_image_url) && filter_var($dream->ai_image_url, FILTER_VALIDATE_URL)) {
-                return redirect()->away($dream->ai_image_url);
-            }
-
-            abort(Response::HTTP_NOT_FOUND);
+            return $this->respondWithStoredPublicMedia($dream->ai_image_url);
         }
 
         if ($kind === 'audio') {
@@ -225,31 +225,6 @@ class DreamController extends Controller
         return $dream->user_id === auth()->id() || $dream->is_public;
     }
 
-    protected function resolveDreamImageUrl(Dream $dream): ?string
-    {
-        if (!$dream->ai_image_url) {
-            return null;
-        }
-
-        $storagePath = $this->extractStoragePath($dream->ai_image_url);
-
-        if ($storagePath && Storage::disk('public')->exists($storagePath)) {
-            return route('dreams.media', [
-                'dream' => $dream->id,
-                'kind' => 'image',
-            ]);
-        }
-
-        if (is_string($dream->ai_image_url) && filter_var($dream->ai_image_url, FILTER_VALIDATE_URL)) {
-            return route('dreams.media', [
-                'dream' => $dream->id,
-                'kind' => 'image',
-            ]);
-        }
-
-        return null;
-    }
-
     protected function resolveDreamAudioUrl(Dream $dream): ?string
     {
         if (!$dream->dream_audio_path || !Storage::disk('public')->exists($dream->dream_audio_path)) {
@@ -260,22 +235,6 @@ class DreamController extends Controller
             'dream' => $dream->id,
             'kind' => 'audio',
         ]);
-    }
-
-    protected function extractStoragePath(?string $value): ?string
-    {
-        if (!is_string($value) || $value === '') {
-            return null;
-        }
-
-        $path = parse_url($value, PHP_URL_PATH);
-        $path = is_string($path) ? $path : $value;
-
-        if (!Str::startsWith($path, '/storage/')) {
-            return null;
-        }
-
-        return ltrim(Str::after($path, '/storage/'), '/');
     }
 
     protected function normalizeLocationPayload(mixed $location, ?string $dreamLocation): ?array
@@ -432,5 +391,21 @@ class DreamController extends Controller
         }
 
         return $dream->symbols->contains(fn ($symbol) => blank($symbol->featured_image));
+    }
+
+    protected function prepareSymbolsForDisplay(iterable $symbols): void
+    {
+        foreach ($symbols as $symbol) {
+            if ($symbol instanceof Symbol) {
+                $symbol->setAttribute('featured_image', $this->resolveStoredPublicMediaUrl(
+                    $symbol->featured_image,
+                    'symbols.media',
+                    [
+                        'symbol' => $symbol->symbol_key,
+                        'kind' => 'image',
+                    ],
+                ));
+            }
+        }
     }
 }

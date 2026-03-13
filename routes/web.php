@@ -26,6 +26,7 @@ Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'inde
 
 Route::middleware('auth')->group(function () {
     Route::get('dreams/{dream}/media/{kind}', [DreamController::class, 'media'])->name('dreams.media');
+    Route::get('symbols/{symbol}/media/{kind}', [SymbolController::class, 'media'])->name('symbols.media');
     Route::patch('dreams/{dream}/visibility', [DreamController::class, 'updateVisibility'])->name('dreams.visibility');
     Route::post('dreams/{dream}/generate-assets', [DreamController::class, 'generateAssets'])->name('dreams.generate-assets');
     Route::get('locations/predict', [LocationPredictionController::class, 'index'])

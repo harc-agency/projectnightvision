@@ -2,22 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesStoredPublicMedia;
 use App\Http\Requests\StoreSymbolRequest;
 use App\Http\Requests\UpdateSymbolRequest;
 use App\Models\Dream;
 use App\Models\Symbol;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\Response;
 use Inertia\Inertia;
 
 class SymbolController extends Controller
 {
+    use ResolvesStoredPublicMedia;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $symbols = Symbol::all();
+        $symbols = Symbol::query()
+            ->orderBy('title')
+            ->get();
+
+        $this->prepareSymbolsForDisplay($symbols);
+
         return Inertia::render('Symbols/Index', [
             'symbols' => $symbols
         ]);
@@ -62,10 +72,20 @@ class SymbolController extends Controller
 
         $symbol->setRelation('dreams', $linkedDreams);
         $symbol->setAttribute('dreams_count', $linkedDreamsCount);
+        $this->prepareSymbolForDisplay($symbol);
 
         return Inertia::render('Symbols/Show', [
             'symbol' => $symbol
         ]);
+    }
+
+    public function media(Symbol $symbol, string $kind)
+    {
+        if ($kind !== 'image') {
+            abort(Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->respondWithStoredPublicMedia($symbol->featured_image);
     }
 
     protected function visibleLinkedDreamsQuery(Symbol $symbol): BelongsToMany
@@ -122,5 +142,26 @@ class SymbolController extends Controller
     public function destroy(Symbol $symbol)
     {
         //
+    }
+
+    protected function prepareSymbolsForDisplay(iterable $symbols): void
+    {
+        foreach ($symbols as $symbol) {
+            if ($symbol instanceof Symbol) {
+                $this->prepareSymbolForDisplay($symbol);
+            }
+        }
+    }
+
+    protected function prepareSymbolForDisplay(Symbol $symbol): void
+    {
+        $symbol->setAttribute('featured_image', $this->resolveStoredPublicMediaUrl(
+            $symbol->featured_image,
+            'symbols.media',
+            [
+                'symbol' => $symbol->symbol_key,
+                'kind' => 'image',
+            ],
+        ));
     }
 }

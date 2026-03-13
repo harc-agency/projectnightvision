@@ -3,6 +3,7 @@
 use App\Models\Dream;
 use App\Models\Symbol;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('symbol page falls back to matching dreams when pivot links are missing', function () {
@@ -84,4 +85,31 @@ test('symbol page only shows linked dreams the current user can view', function 
             $ownedDream->id,
             $publicDream->id,
         ]));
+});
+
+test('symbol page resolves local symbol images through the media route', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('symbol-images/apocalypse.png', 'image-bytes');
+
+    $user = User::factory()->create();
+
+    $symbol = Symbol::create([
+        'symbol_key' => 'apocalypse',
+        'title' => 'Apocalypse',
+        'description' => 'Represents disruption, endings, and large-scale change.',
+        'featured_image' => '/storage/symbol-images/apocalypse.png',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('symbols.show', ['symbol' => $symbol->symbol_key]));
+
+    $response->assertOk();
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('Symbols/Show')
+        ->where('symbol.featured_image', route('symbols.media', [
+            'symbol' => $symbol->symbol_key,
+            'kind' => 'image',
+        ])));
 });
